@@ -1,0 +1,114 @@
+{%- macro CLASS_NAME(entity_name) -%}
+  {{ entity_name.title() | replace("_", "") }}
+{%- endmacro -%}
+
+{%- macro ARG_TYPE(type) -%}
+{%- if type is mapping -%}
+  lambda name: query("{{ CLASS_NAME(type['noun']) }}", "{{ type['noun'] }}", name)
+{%- else -%}
+  {{ type }}
+{%- endif -%}
+{%- endmacro -%}
+
+
+{%- macro ADD_ARGUMENT(name, type, required=False) -%}
+  parser.add_argument("--{{ name }}", type={{ ARG_TYPE(type) }}, required={{required }})
+{%- endmacro -%}
+
+{%- macro ARGSETTER_NAME(noun, verb) -%}
+_args_{{ noun }}_{{ verb }} 
+{%- endmacro -%}
+
+{% macro ARGSETTER(noun, verb, accepts, returns) %}
+def {{ ARGSETTER_NAME(noun, verb) }}(parser):
+  {% if accepts | length == 0 %} 
+    pass 
+  {% endif %} 
+  {% for type_data in accepts %}  
+    {{ ADD_ARGUMENT(**type_data) }}
+  {% endfor %} 
+{% endmacro %}
+
+{%- macro ENTRYPOINT_NAME(noun, verb) -%}
+_cli_{{ noun }}_{{ verb }}
+
+{%- endmacro -%}
+
+{% macro CALLABLE(noun, verb, instance=False, requires_api_key=True) %}
+  {% set argsetter = ARGSETTER_NAME(noun, verb) %} 
+@f0cal.entrypoint(["{{ noun }}", "{{ verb }}"], args={{ argsetter }})
+@printer
+{% if requires_api_key %}
+@api_key_required
+{% endif %}
+def {{ ENTRYPOINT_NAME(noun, verb) }}(parser, core, *args, **dargs):
+  client = DeviceFarmApi(api_key=core.config['api']['api_key'], api_url=core.config['api']['endpoint'])
+  {% if instance %}
+  inst = dargs.pop("{{ noun }}")
+  return inst.{{ verb }}(*args, **dargs)
+  {% else %}
+  cls = type("{{ CLASS_NAME(noun) }}", (entity.Entity,), {"CLIENT":client, NOUN:"{{ noun }}"})
+  return cls.{{ verb }}(*args, **dargs)
+  {% endif %}
+{% endmacro %}
+
+{% macro ENTRYPOINT(noun, verb, args, instance) %}
+  {{ ARGSETTER(noun, verb, args) }}
+  {{ CALLABLE(noun, verb, instance) }}
+{% endmacro %}
+
+{% macro TEMPLATE(classes, entrypoints) %}
+  {% for class_data in classes %}
+    {{ TYPE_COMPOSITION(**class_data) }}
+  {% endfor %}
+  {% for entrypoint_data in entrypoints %}
+    {{ ENTRYPOINT(**entrypoint_data) }}
+  {% endfor %}
+{% endmacro %}
+
+###########################################################
+import f0cal
+import wrapt
+
+from f0cal.farm.client import entity
+from f0cal.farm.client.api_client import DeviceFarmApi
+
+@f0cal.plugin(name='device', sets='config_file')
+def config_file():
+    return '''
+    [device]
+    #Assumes file will exist in current working directory
+    device_filename=.f0cal_device
+
+    [api]
+    api_url = http://104.197.189.7/api
+    '''
+
+def query(class_name, noun, name):
+    api_key = f0cal.CORE.config['api'].get("api_key")
+    api_url = f0cal.CORE.config['api']['api_url']
+    client = DeviceFarmApi(api_url, api_key)
+    cls = type(class_name, (entity.Entity, ), {'CLIENT': client, NOUN: noun })
+    return cls.from_name(noun, name)
+
+@wrapt.decorator
+def api_key_required(wrapped, instance, args, kwargs):
+    api_key = f0cal.CORE.config['api'].get('api_key')
+    if api_key is None:
+        print(
+            "An API KEY is required for this action please set one with\n$ f0cal farm config set api_key\n"
+            "You can obtain one at f0cal.com")
+        exit(1)
+    return wrapped(*args, **kwargs)
+
+@wrapt.decorator
+def printer(wrapped, instance, args, kwargs):
+    out = wrapped(*args, **kwargs)
+    if isinstance(out, list):
+        for x in out:
+            print(x, {k: v for k, v in x.__dict__.items() if not k.startswith("_")})
+    else:
+        print(out, {k: v for k, v in out.__dict__.items() if not k.startswith("_")})
+    return out
+
+{{ TEMPLATE(**vars()) }}

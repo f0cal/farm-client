@@ -2,9 +2,8 @@
 from encodings.punycode import selective_find
 
 import requests
-import wrapt
 import logging
-
+import wrapt
 LOG = logging.getLogger(__name__)
 
 
@@ -38,6 +37,7 @@ class DeviceFarmApi:
         else:
             print("Unknown Error from F0cal")
             response.raise_for_status()
+
 
     def _check_response(self, response):
         if not response.ok:
@@ -73,42 +73,27 @@ class DeviceFarmApi:
             exit(1)
 
         self._check_response(response)
-
         return response.json()['data']
+
+    def create(self, noun, data):
+        url = f'{self.url,}/{noun}'
+        return self._post(url, data)
+
+    def list(self, noun):
+        url = f'{self.url}/{noun}'
+        return self._get(url)
+
+    def retrieve(self, noun, _id):
+        url = f'{self.url}/{noun}/{_id}'
+        return self._get(url)
+
+    def action(self, noun, _id, verb, data):
+        url = f'{self.url}/{noun}/{_id}/{verb}'
+        return self._post(url, data)
 
     def _add_auth(self, headers):
         if self.api_key:
             headers.update({'Authorization': f'APIKEY {self.api_key}'})
         return headers
 
-    @api_key_required
-    def create_ssh_key_pair(self, key_name, public_key=None):
-        data = {'key_name': key_name, 'public_key': public_key}
-        return self._post('/public-keys/', data=data)
 
-    @api_key_required
-    def create_instance(self, hardware_type, key_name=None, start_up_script=None):
-        data = {"hardware_type": hardware_type, "key_name": key_name, "startup_script": start_up_script}
-        response = self._post(f"/instances/", data=data,
-                              headers={'Authorization': f'APIKEY {self.api_key}'})
-        return response
-
-    @api_key_required
-    def get_instance(self, instance_id):
-        response = self._get(f"/instances/{instance_id}")
-        return response
-
-    @api_key_required
-    def stop_instance(self, instance_id):
-        response = self._post(f"/instances/stop/", data={'instance_id': instance_id})
-        return response
-
-    @api_key_required
-    def get_all_key_pairs(self):
-        response = self._get(f'/public-keys/')
-        return response
-
-    @api_key_required
-    def get_vpn_key(self):
-        response = self._post('/vpn-key', data={})
-        return response['key_string']

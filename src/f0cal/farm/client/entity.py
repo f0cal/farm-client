@@ -49,3 +49,6 @@ class Entity:
 
     def do_verb(self, verb, data):
         response = self.CLIENT.action(self.noun, self.id, verb, data)
+
+    def describe(self):
+        return self

@@ -44,7 +44,6 @@ class DeviceFarmApi:
             self._handle_error_response(response)
 
     def _get(self, url, *args, **kwargs):
-        url = f'{self.url}{url}'
 
         headers = kwargs.pop('headers', {})
         headers = self._add_auth(headers)
@@ -61,7 +60,6 @@ class DeviceFarmApi:
         return response.json()['data']
 
     def _post(self, url, data, *args, **kwargs):
-        url = f'{self.url}{url}'
         headers = kwargs.pop('headers', {})
         headers = self._add_auth(headers)
         kwargs['headers'] = headers
@@ -76,19 +74,19 @@ class DeviceFarmApi:
         return response.json()['data']
 
     def create(self, noun, data):
-        url = f'{self.url,}/{noun}'
+        url = f'{self.url,}/{noun}/'
         return self._post(url, data)
 
     def list(self, noun):
-        url = f'{self.url}/{noun}'
+        url = f'{self.url}/{noun}/'
         return self._get(url)
 
     def retrieve(self, noun, _id):
-        url = f'{self.url}/{noun}/{_id}'
+        url = f'{self.url}/{noun}/{_id}/'
         return self._get(url)
 
     def action(self, noun, _id, verb, data):
-        url = f'{self.url}/{noun}/{_id}/{verb}'
+        url = f'{self.url}/{noun}/{_id}/{verb}/'
         return self._post(url, data)
 
     def _add_auth(self, headers):

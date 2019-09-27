@@ -42,12 +42,12 @@ _cli_{{ noun }}_{{ verb }}
 @api_key_required
 {% endif %}
 def {{ ENTRYPOINT_NAME(noun, verb) }}(parser, core, *args, **dargs):
-  client = DeviceFarmApi(api_key=core.config['api']['api_key'], api_url=core.config['api']['endpoint'])
+  client = DeviceFarmApi(api_key=core.config['api']['api_key'], api_url=core.config['api']['api_url'])
   {% if instance %}
   inst = dargs.pop("{{ noun }}")
   return inst.{{ verb }}(*args, **dargs)
   {% else %}
-  cls = type("{{ CLASS_NAME(noun) }}", (entity.Entity,), {"CLIENT":client, NOUN:"{{ noun }}"})
+  cls = type("{{ CLASS_NAME(noun) }}", (entity.Entity,), {"CLIENT":client, "NOUN":"{{ noun }}"})
   return cls.{{ verb }}(*args, **dargs)
   {% endif %}
 {% endmacro %}
@@ -88,8 +88,8 @@ def query(class_name, noun, name):
     api_key = f0cal.CORE.config['api'].get("api_key")
     api_url = f0cal.CORE.config['api']['api_url']
     client = DeviceFarmApi(api_url, api_key)
-    cls = type(class_name, (entity.Entity, ), {'CLIENT': client, NOUN: noun })
-    return cls.from_name(noun, name)
+    cls = type(class_name, (entity.Entity, ), {'CLIENT': client, "NOUN": noun })
+    return cls.from_name(name)
 
 @wrapt.decorator
 def api_key_required(wrapped, instance, args, kwargs):
@@ -106,9 +106,15 @@ def printer(wrapped, instance, args, kwargs):
     out = wrapped(*args, **kwargs)
     if isinstance(out, list):
         for x in out:
-            print(x, {k: v for k, v in x.__dict__.items() if not k.startswith("_")})
+            print({k: v for k, v in x.__dict__.items() if not k.startswith("_")})
     else:
-        print(out, {k: v for k, v in out.__dict__.items() if not k.startswith("_")})
+        print({k: v for k, v in out.__dict__.items() if not k.startswith("_")})
     return out
 
 {{ TEMPLATE(**vars()) }}
+
+if __name__ == '__main__':
+    from f0cal.__main__ import main
+    import sys
+    sys.argv = ['f0cal', 'device_type' , 'list']
+    main()

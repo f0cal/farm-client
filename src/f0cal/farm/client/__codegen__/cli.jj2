@@ -2,17 +2,25 @@
   {{ entity_name.title() | replace("_", "") }}
 {%- endmacro -%}
 
+{%- macro KWARGS(a_dict) -%}
+{%- for key in a_dict -%}
+{{ key }}={{ a_dict[key] }},
+{%- endfor -%}
+{%- endmacro -%}
+
+
 {%- macro ARG_TYPE(type) -%}
-{%- if type is mapping -%}
-  lambda name: query("{{ CLASS_NAME(type['noun']) }}", "{{ type['noun'] }}", name)
+{%- if type is not defined -%}
+{%- elif type is mapping -%}
+  type=lambda name: query("{{ CLASS_NAME(type['noun']) }}", "{{ type['noun'] }}", name),
 {%- else -%}
-  {{ type }}
+  type={{ type }},
 {%- endif -%}
 {%- endmacro -%}
 
 
-{%- macro ADD_ARGUMENT(name, type, required=False) -%}
-  parser.add_argument("--{{ name }}", type={{ ARG_TYPE(type) }}, required={{required }})
+{%- macro ADD_ARGUMENT(name, type, kwargs={},  required=False) -%}
+  parser.add_argument("--{{ name }}",{{ ARG_TYPE(type) }} required={{required }}, {{ KWARGS(kwargs) }})
 {%- endmacro -%}
 
 {%- macro ARGSETTER_NAME(noun, verb) -%}
@@ -36,7 +44,7 @@ _cli_{{ noun }}_{{ verb }}
 
 {% macro CALLABLE(noun, verb, instance=False, requires_api_key=True) %}
   {% set argsetter = ARGSETTER_NAME(noun, verb) %} 
-@f0cal.entrypoint(["{{ noun }}", "{{ verb }}"], args={{ argsetter }})
+@f0cal.entrypoint(["farm", "{{ noun }}", "{{ verb }}"], args={{ argsetter }})
 @printer
 {% if requires_api_key %}
 @api_key_required
@@ -47,8 +55,8 @@ def {{ ENTRYPOINT_NAME(noun, verb) }}(parser, core, *args, **dargs):
   inst = dargs.pop("{{ noun }}")
   return inst.{{ verb }}(*args, **dargs)
   {% else %}
-  cls = type("{{ CLASS_NAME(noun) }}", (entity.Entity,), {"CLIENT":client, "NOUN":"{{ noun }}"})
-  return cls.{{ verb }}(*args, **dargs)
+  cls = create_class("{{ CLASS_NAME(noun) }}", "{{ noun }}")
+  return cls.{{ verb }}(**dargs)
   {% endif %}
 {% endmacro %}
 
@@ -70,7 +78,7 @@ def {{ ENTRYPOINT_NAME(noun, verb) }}(parser, core, *args, **dargs):
 import f0cal
 import wrapt
 
-from f0cal.farm.client import entity
+from f0cal.farm.client import entities
 from f0cal.farm.client.api_client import DeviceFarmApi
 
 @f0cal.plugin(name='device', sets='config_file')
@@ -84,12 +92,18 @@ def config_file():
     api_url = http://104.197.189.7/api
     '''
 
-def query(class_name, noun, name):
-    api_key = f0cal.CORE.config['api'].get("api_key")
-    api_url = f0cal.CORE.config['api']['api_url']
+def create_class(class_name, noun):
+    api_key = f0cal.CORE.config["api"].get("api_key")
+    api_url = f0cal.CORE.config["api"]["api_url"]
     client = DeviceFarmApi(api_url, api_key)
-    cls = type(class_name, (entity.Entity, ), {'CLIENT': client, "NOUN": noun })
-    return cls.from_name(name)
+    cls = type(class_name, (getattr(entities, class_name),), {"CLIENT": client, "NOUN": noun})
+    return cls
+
+def query(class_name, noun, name):
+    cls = create_class(class_name, noun)
+    inst = cls.from_name(name)
+    return inst.id
+
 
 @wrapt.decorator
 def api_key_required(wrapped, instance, args, kwargs):
@@ -116,5 +130,5 @@ def printer(wrapped, instance, args, kwargs):
 if __name__ == '__main__':
     from f0cal.__main__ import main
     import sys
-    sys.argv = ['f0cal', 'device_type' , 'list']
+    sys.argv = ["f0cal",  "farm",  "instance",  "create",  "--device_type",  "rpi3b+"]
     main()

@@ -29,6 +29,18 @@ entrypoints:
         required: true
         type:
           noun: device_type
+      - name: auto_provision
+        required: false
+        kwargs:
+          action: "'store_true'"
+
+      - name: wait
+        required: false
+        kwargs:
+          action: "'store_true'"
+      - name: wait_time
+        required: false
+        type: int
 
   - noun: instance
     verb: describe
@@ -66,3 +78,6 @@ entrypoints:
           noun: instance
       - name: connection_type
         type: str
+
+  - noun: ssh_key
+    verb:  list

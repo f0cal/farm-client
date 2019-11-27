@@ -2,18 +2,23 @@ entrypoints:
   - noun: device_type
     verb: describe
     instance: true
+    requires_api_key: false
     args:
       - name: device_type
         type:
           noun: device_type
   - noun: device_type
     verb: list
+    requires_api_key: false
 
   - noun: image
     verb: list
+    requires_api_key: false
+
   - noun: image
     verb: describe
     instance: true
+    requires_api_key: false
     args:
       - name: image
         type:

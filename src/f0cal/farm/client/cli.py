@@ -13,7 +13,7 @@ def config_file():
     device_filename=.f0cal_device
     
     [api]
-    endpoint = http://104.197.189.7/api
+    api_url = http://104.197.189.7/api
     '''
 
 
@@ -99,14 +99,14 @@ class DeviceFileParser:
 
 def configure_args(parser):
     parser.add_argument('-k', '--api-key')
-    parser.add_argument('-e', '--endpoint')
+    parser.add_argument('-u', '--api_url')
 
 
 @f0cal.entrypoint(['farm', 'configure'], args=configure_args)
-def configure(parser, core, api_key, endpoint):
+def configure(parser, core, api_key, api_url):
     if api_key:
         core.config['api']['api_key'] = api_key
-    if endpoint:
-        core.config['api']['endpoint'] = endpoint
+    if api_url:
+        core.config['api']['api_url'] = api_url
 
     core.config.write_file(core.config_path)

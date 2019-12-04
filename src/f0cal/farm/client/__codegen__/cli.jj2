@@ -9,18 +9,32 @@
 {%- endmacro -%}
 
 
+{%- macro FORMAT_CLI_NOUN(noun) -%}
+{{ noun | replace("_", "-") }}
+{%- endmacro -%}
+
 {%- macro ARG_TYPE(type) -%}
 {%- if type is not defined -%}
+
 {%- elif type is mapping -%}
   type=lambda name: query("{{ CLASS_NAME(type['noun']) }}", "{{ type['noun'] }}", name),
+{%- elif type=='query_string' -%}
+  type=lambda query_string: parse_query_string(query_string),
+{%- elif type=='update_string' -%}
+  type=lambda update_string: parse_query_string(update_string),
 {%- else -%}
   type={{ type }},
 {%- endif -%}
 {%- endmacro -%}
 
 
-{%- macro ADD_ARGUMENT(name, type, kwargs={},  required=False) -%}
+{%- macro ADD_ARGUMENT(name, type, kwargs={},  required=False, positional=False) -%}
+  {% if positional %}
+
+  parser.add_argument("{{ name }}",{{ ARG_TYPE(type) }} {%- if not required %} nargs='?',{% endif -%} {{ KWARGS(kwargs) }})
+  {% else %}
   parser.add_argument("--{{ name }}",{{ ARG_TYPE(type) }} required={{required }}, {{ KWARGS(kwargs) }})
+  {% endif %}
 {%- endmacro -%}
 
 {%- macro ARGSETTER_NAME(noun, verb) -%}
@@ -44,7 +58,7 @@ _cli_{{ noun }}_{{ verb }}
 
 {% macro CALLABLE(noun, verb, instance=False, requires_api_key=True) %}
   {% set argsetter = ARGSETTER_NAME(noun, verb) %} 
-@f0cal.entrypoint(["farm", "{{ noun }}", "{{ verb }}"], args={{ argsetter }})
+@f0cal.entrypoint(["farm", "{{ FORMAT_CLI_NOUN(noun) }}", "{{ verb }}"], args={{ argsetter }})
 @printer
 {% if requires_api_key %}
 @api_key_required
@@ -75,60 +89,25 @@ def {{ ENTRYPOINT_NAME(noun, verb) }}(parser, core, *args, **dargs):
 {% endmacro %}
 
 ###########################################################
+#GENERATED CODE, DO NOT MODIFY
+###########################################################
+
 import f0cal
 import wrapt
 
 from f0cal.farm.client import entities
 from f0cal.farm.client.api_client import DeviceFarmApi
+from f0cal.farm.client.utils import *
 
-@f0cal.plugin(name='device', sets='config_file')
+@f0cal.plugin(name="device", sets="config_file")
 def config_file():
-    return '''
+    return """
     [device]
     #Assumes file will exist in current working directory
     device_filename=.f0cal_device
 
     [api]
-    api_url = http://104.197.189.7/api
-    '''
-
-def create_class(class_name, noun):
-    api_key = f0cal.CORE.config["api"].get("api_key")
-    api_url = f0cal.CORE.config["api"]["api_url"]
-    client = DeviceFarmApi(api_url, api_key)
-    cls = type(class_name, (getattr(entities, class_name),), {"CLIENT": client, "NOUN": noun})
-    return cls
-
-def query(class_name, noun, name):
-    cls = create_class(class_name, noun)
-    inst = cls.from_name(name)
-    return inst.id
-
-
-@wrapt.decorator
-def api_key_required(wrapped, instance, args, kwargs):
-    api_key = f0cal.CORE.config['api'].get('api_key')
-    if api_key is None:
-        print(
-            "An API KEY is required for this action please set one with\n$ f0cal farm config set api_key\n"
-            "You can obtain one at f0cal.com")
-        exit(1)
-    return wrapped(*args, **kwargs)
-
-@wrapt.decorator
-def printer(wrapped, instance, args, kwargs):
-    out = wrapped(*args, **kwargs)
-    if isinstance(out, list):
-        for x in out:
-            print({k: v for k, v in x.__dict__.items() if not k.startswith("_")})
-    else:
-        print({k: v for k, v in out.__dict__.items() if not k.startswith("_")})
-    return out
+    api_url = https://app.f0cal.com/api
+    """
 
 {{ TEMPLATE(**vars()) }}
-
-if __name__ == '__main__':
-    from f0cal.__main__ import main
-    import sys
-    sys.argv = ["f0cal",  "farm",  "instance",  "create",  "--device_type",  "rpi3b+"]
-    main()

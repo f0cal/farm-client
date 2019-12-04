@@ -1,32 +1,45 @@
 entrypoints:
   - noun: device_type
-    verb: describe
+    verb: retrieve
     instance: true
-    requires_api_key: false
     args:
       - name: device_type
+        positional: true
+        required: true
         type:
           noun: device_type
+
   - noun: device_type
-    verb: list
-    requires_api_key: false
+    verb: query
+    args:
+      - name: query_string
+        positional: true
+        type: query_string
 
   - noun: image
-    verb: list
-    requires_api_key: false
+    verb: query
+    args:
+      - name: query_string
+        positional: true
+        type: query_string
 
   - noun: image
-    verb: describe
+    verb: retrieve
     instance: true
     requires_api_key: false
     args:
       - name: image
+        positional: true
+        required: true
         type:
           noun: image
 
   - noun: instance
     verb: create
     args:
+      - name: name
+        positional: true
+        required: true
       - name: image
         type:
           noun: image
@@ -48,21 +61,41 @@ entrypoints:
         type: int
 
   - noun: instance
-    verb: describe
+    verb: retrieve
     instance: true
     args:
       - name: instance
+        positional: true
+        required: true
         type:
           noun: instance
-
   - noun: instance
-    verb: list
+    verb: update
+    instance: true
+    args:
+      - name: instance
+        positional: true
+        required: true
+        type:
+          noun: instance
+      - name: update
+        positional: true
+        required: true
+        type: update_string
+  - noun: instance
+    verb: query
+    args:
+      - name: query_string
+        positional: true
+        type: query_string
 
   - noun: instance
     verb: start
     instance: true
     args:
       - name: instance
+        positional: true
+
         type:
           noun: instance
 
@@ -71,6 +104,8 @@ entrypoints:
     instance: true
     args:
       - name: instance
+        positional: true
+        required: true
         type:
           noun: instance
 
@@ -81,8 +116,16 @@ entrypoints:
       - name: instance
         type:
           noun: instance
+          positional: true
+          required: true
       - name: connection_type
         type: str
 
   - noun: ssh_key
-    verb:  list
+    verb:  query
+    args:
+      - name: query_string
+        positional: true
+        type: query_string
+
+

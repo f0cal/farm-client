@@ -16,8 +16,6 @@ class {{ CLASS_NAME(name) }}(_EntityBase):
   {% endfor %}
 {% endmacro %}
 
-import hashlib
-
 {% macro TEMPLATE(entities) %}
   {% for entity_data in entities %}
     {{ BASE_CLASS(**entity_data) }}
@@ -49,9 +47,14 @@ class _EntityBase:
         return cls._from_response(response)
 
     @classmethod
-    def list(cls, *args, **kwargs):
+    def query(cls, *args, **kwargs):
         response = cls.CLIENT.list(cls.NOUN)
         return [cls._from_response(i) for i in response]
+
+    @classmethod
+    def update(cls, *args, **kwargs):
+        response = cls.CLIENT.update(cls.NOUN, data)
+        return cls._from_response(response)
 
     @classmethod
     def from_id(cls, _id, *args, **kwargs):
@@ -73,7 +76,7 @@ class _EntityBase:
     def _do_verb(self, verb, data):
         response = self.CLIENT.action(self.NOUN, self.id, verb, data)
 
-    def describe(self):
+    def retrieve(self):
         return self
 
 

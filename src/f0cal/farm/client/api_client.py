@@ -99,13 +99,32 @@ class DeviceFarmApi:
         self._check_response(response)
         return response.json()['data']
 
+    def _delete(self, url, *args, **kwargs):
+
+        headers = kwargs.pop('headers', {})
+        headers = self._add_auth(headers)
+        kwargs['headers'] = headers
+        try:
+            response = requests.delete(url, *args, **kwargs)
+        except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout) as e:
+            print(f'ERROR: {e.args[0]}')
+            print("There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com")
+            exit(1)
+        self._check_response(response)
+
+        return response.json()['data']
+
     def create(self, noun, data):
         url = f'{self.url}/{noun}/'
         return self._post(url, data)
 
-    def update(self, noun, data, _id):
+    def update(self, noun, _id,  data):
         url = f'{self.url}/{noun}/{_id}'
         return self._patch(url, data)
+
+    def delete(self, noun, _id):
+        url = f'{self.url}/{noun}/{_id}'
+        return self._delete(url)
 
     def list(self, noun):
         url = f'{self.url}/{noun}/'

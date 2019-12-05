@@ -110,6 +110,16 @@ entrypoints:
           noun: instance
 
   - noun: instance
+    verb: destroy
+    instance: true
+    args:
+      - name: instance
+        positional: true
+        required: true
+        type:
+          noun: instance
+
+  - noun: instance
     verb: connect
     instance: true
     args:

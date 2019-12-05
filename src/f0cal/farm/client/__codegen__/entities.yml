@@ -1,0 +1,12 @@
+entities:
+  - name: device_type
+  - name: image
+
+  - name: instance
+    verbs:
+      - name: start
+      - name: stop
+      - name: connect
+  - name: ssh_key
+
+

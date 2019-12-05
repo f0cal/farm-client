@@ -48,3 +48,6 @@ MANIFEST
 # Per-project virtualenvs
 .venv*/
 env/*
+
+
+src/f0cal/farm/client/__codegen__/*.py

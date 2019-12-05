@@ -64,8 +64,8 @@ def api_key_required(wrapped, instance, args, kwargs):
     api_key = f0cal.CORE.config['api'].get('api_key')
     if api_key is None:
         print(
-            "An API KEY is required for this action please set one with\n$ f0cal farm config set api_key\n"
-            "You can obtain one at f0cal.com")
+            'An API KEY is required for this action please set one with\n$f0cal farm config update "api_key=$YOU_API_KEY"\n'
+            'You can obtain one at f0cal.com')
         exit(1)
     return wrapped(*args, **kwargs)
 

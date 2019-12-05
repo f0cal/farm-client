@@ -3,15 +3,11 @@ import json
 import os
 from f0cal.farm.client.__codegen__.cli import parse_update_string
 
-@f0cal.plugin(name='device', sets='config_file')
+@f0cal.plugin(name='farm_api', sets='config_file')
 def config_file():
     return '''
-    [device]
-    #Assumes file will exist in current working directory
-    device_filename=.f0cal_device
-    
     [api]
-    api_url = http://104.197.189.7/api
+    api_url = https://app.f0cal.com/api
     '''
 
 

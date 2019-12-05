@@ -99,15 +99,4 @@ from f0cal.farm.client import entities
 from f0cal.farm.client.api_client import DeviceFarmApi
 from f0cal.farm.client.utils import *
 
-@f0cal.plugin(name="device", sets="config_file")
-def config_file():
-    return """
-    [device]
-    #Assumes file will exist in current working directory
-    device_filename=.f0cal_device
-
-    [api]
-    api_url = https://app.f0cal.com/api
-    """
-
 {{ TEMPLATE(**vars()) }}

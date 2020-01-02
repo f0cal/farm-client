@@ -119,17 +119,16 @@ entrypoints:
         type:
           noun: instance
 
-  - noun: instance
-    verb: connect
-    instance: true
-    args:
-      - name: instance
-        type:
-          noun: instance
-          positional: true
-          required: true
-      - name: connection_type
-        type: str
+#  - noun: instance
+#    verb: connect
+#    instance: true
+#    args:
+#      - name: instance
+#        positional: true
+#        required: true
+#      - name: connection_type
+#        positional: true
+#        type: str
 
   - noun: ssh_key
     verb:  query

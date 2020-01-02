@@ -1,6 +1,8 @@
 import f0cal
 import json
 import os
+import argparse
+from f0cal.farm.client.utils import query
 from f0cal.farm.client.__codegen__.cli import parse_update_string
 
 @f0cal.plugin(name='farm_api', sets='config_file')
@@ -48,3 +50,19 @@ def configure(parser, core,  update_args):
 
 
     core.config.write_file(core.config_path)
+
+def args_instance_connect(parser):
+    parser.add_argument( "instance", type=lambda name: query("Instance", "instance", name),)
+    parser.add_argument('--connection_type', '-type', nargs='?', default='ssh')
+    parser.add_argument('connection_args', nargs=argparse.REMAINDER)
+@f0cal.entrypoint(["farm", "instance", "connect"], args=args_instance_connect)
+def instance_connect(parser, core, instance, connection_type, connection_args):
+    print(instance)
+    instance.connect(connection_type, connection_args)
+
+if __name__ == '__main__':
+    from f0cal.__main__ import main
+    import sys
+    import shlex
+    sys.argv=shlex.split('f0cal farm instance connect instance-9f1f40e42d0d11ea91b2dd8503cf15b0')
+    main()

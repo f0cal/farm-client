@@ -21,18 +21,19 @@ def _resolve_reference_type(ref):
         return 'reference'
     elif ref.startswith(':'):
         return 'id'
-    else:
-        print('Object references should be in one of the following formats \n<name>/<version> with an optional '
-              '#revision or \n :<id>')
-        exit(1)
+
+    return 'name'
 def query(class_name, noun, ref):
     cls = create_class(class_name, noun)
     ref_type = _resolve_reference_type(ref)
     if ref_type == 'reference':
         print('Referencing objects is only supported from ids currently. Check back soon for full namespace resolution')
         exit(1)
-    _id = ref.replace(':', '')
-    inst = cls.from_id(_id)
+    if ref_type == 'name':
+        inst = cls.from_name(ref)
+    else:
+        _id = ref.replace(':', '')
+        inst = cls.from_id(_id)
     return inst
 
 

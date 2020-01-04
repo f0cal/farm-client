@@ -9,7 +9,7 @@
 {% endmacro %}
 
 {% macro BASE_CLASS(name, verbs) %}
-class {{ CLASS_NAME(name) }}(_EntityBase):
+class {{ CLASS_NAME(name) }}(EntityBase):
   {% if verbs | length == 0 %}pass{% endif %}
   {% for verb_data in verbs %}
     {{ ENTITY(**verb_data) }}
@@ -21,13 +21,12 @@ class {{ CLASS_NAME(name) }}(_EntityBase):
     {{ BASE_CLASS(**entity_data) }}
   {% endfor %}
 {% endmacro %}
-from f0cal.farm.client.api_client import DeviceFarmApi
 
 class NoSuchItemException(Exception):
     pass
 
-class _EntityBase:
-    CLIENT = DeviceFarmApi(None, None)
+class EntityBase:
+    CLIENT = None
     NOUN = None
 
     def set_attr(self, key, val):

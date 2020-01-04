@@ -34,24 +34,6 @@ entrypoints:
         type:
           noun: image
 
-  - noun: instance
-    verb: create
-    args:
-      - name: name
-        positional: true
-        required: true
-      - name: image
-        type:
-          noun: image
-      - name: device_type
-        required: true
-        type:
-          noun: device_type
-      - name: auto_provision
-        required: false
-        kwargs:
-          action: "'store_true'"
-
       - name: wait
         required: false
         kwargs:

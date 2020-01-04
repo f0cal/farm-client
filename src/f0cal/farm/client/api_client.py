@@ -4,7 +4,7 @@ from encodings.punycode import selective_find
 import requests
 import logging
 import wrapt
-
+from f0cal.farm.client.entities import EntityBase
 LOG = logging.getLogger(__name__)
 
 
@@ -49,6 +49,12 @@ class DeviceFarmApi:
             self._handle_error_response(response)
 
     def _prep_data(self, data):
+        for key, val in data.items():
+            if val is None:
+                del data[key]
+            if isinstance(val, EntityBase):
+                data[key] = val.id
+
         data = {k: v for k, v in data.items() if v is not None}
         return data
 

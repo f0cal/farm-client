@@ -36,3 +36,6 @@ class Instance(Instance):
             print('This instance does not have an ip configured yet. Are you sure its ready?')
         parts = urllib.parse.urlparse(ip)
         return parts.hostname, parts.port
+
+    def stop(self):
+        self._do_verb('stop', {})

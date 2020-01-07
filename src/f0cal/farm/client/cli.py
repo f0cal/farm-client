@@ -76,11 +76,17 @@ def _cli_instance_create(parser, core, name,  wait=False, wait_time=15, *args, *
 
 def args_instance_connect(parser):
     parser.add_argument( "instance", type=lambda name: query("Instance", "instance", name),)
-    parser.add_argument('--connection_type', '-type', nargs='?', default='ssh')
     parser.add_argument('connection_args', nargs=argparse.REMAINDER)
+
 @f0cal.entrypoint(["farm", "instance", "connect"], args=args_instance_connect)
-def instance_connect(parser, core, instance, connection_type, connection_args):
-    print(instance)
+def instance_connect(parser, core, instance, connection_args,*args, **kwargs):
+    if '--ssh' in connection_args:
+        connection_type = 'ssh'
+        connection_args.remove('--ssh')
+    else:
+        print('Only ssh connection are supported at the moment. Please use --ssh')
+        exit(1)
+    connection_args.remove('--')
     instance.connect(connection_type, connection_args)
 def devices_args(parser):
     parser.add_argument("name", )

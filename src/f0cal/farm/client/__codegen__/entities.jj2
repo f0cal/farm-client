@@ -67,6 +67,11 @@ class EntityBase:
                 return cls._from_response(i)
         raise NoSuchItemException(f'There is no {cls.NOUN} named {name}')
 
+    def refresh(self):
+        response = self.CLIENT.retrieve(self.NOUN, self.id)
+        for key, val in response.items():
+            self.set_attr(key, val)
+
     def update(self, **data):
         response = self.CLIENT.update(self.NOUN, self.id,  data)
         return self._from_response(response)

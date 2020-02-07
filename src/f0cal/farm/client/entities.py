@@ -16,6 +16,12 @@ class Instance(Instance):
             exit(1)
         return _fn(connection_args)
 
+    def destroy(self):
+        return self.stop()
+
+    def stop(self):
+        print('Stopping instance')
+        return self._do_verb('stop', {})
 
     def _connect_ssh(self, connection_args):
         ssh_bin = '/usr/bin/ssh'
@@ -36,9 +42,4 @@ class Instance(Instance):
             print('This instance does not have an ip configured yet. Are you sure its ready?')
         parts = urllib.parse.urlparse(ip)
         return parts.hostname, parts.port
-    def destroy(self):
-        return self.stop()
 
-    def stop(self):
-        print('Stopping instance')
-        return self._do_verb('stop', {})

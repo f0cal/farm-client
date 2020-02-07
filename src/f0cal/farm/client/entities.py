@@ -32,7 +32,7 @@ class Instance(Instance):
         os.execvp(ssh_bin, connection_args)
     def _format_ssh_args(self, connection_args):
         ip , port = self._get_url()
-        connection_args = ['ssh'] + connection_args + [f'f0cal@{ip}']
+        connection_args = ['ssh'] + connection_args + [f'farmer@{ip}']
         if port:
             connection_args = connection_args + ['-p', f'{port}']
         return connection_args

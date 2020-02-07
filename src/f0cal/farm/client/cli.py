@@ -38,8 +38,10 @@ def _args_instance_create(parser):
     parser.add_argument("name", )
     parser.add_argument("--image", type=lambda name: query("Image", "image", name), required=True,)
     parser.add_argument("--device-type", type=lambda name: query("DeviceType", "device_type", name),required=True,)
-    parser.add_argument("--no-queue", required=False, action="store_true",)
-    parser.add_argument("--no-block", required=False, action="store_true",)
+    parser.add_argument("--no-queue", required=False, action="store_true",
+                        help="Only create an instance if there is a device available immediately")
+    parser.add_argument("--no-block", required=False, action="store_true",
+                        help='Create an instance but do not wait for it become ready')
 
 @f0cal.entrypoint(["farm", "instance", "create"], args=_args_instance_create)
 @printer

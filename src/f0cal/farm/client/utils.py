@@ -1,10 +1,33 @@
 from f0cal.farm.client import entities
 import f0cal
 import re
+import json
+import os
 from f0cal.farm.client.api_client import DeviceFarmApi
 import wrapt
 REFERENCE_REGEX = '([\\w]*)\\/([\\w]*)(#[\\d]*)?$'
 
+class DeviceFileParser:
+    def __init__(self, device_file):
+        '''Parser for current device config'''
+        self.device_file = device_file
+        if os.path.exists(device_file):
+            self.data = json.load(open(device_file))
+        else:
+            os.makedirs(os.path.dirname(device_file), exist_ok=True)
+            self.data = {}
+
+    def __getitem__(self, item):
+        return self.data[item]
+    def __setitem__(self, key, value):
+        self.data[key] = value
+
+    def __iter__(self):
+        return self.data.__iter__()
+
+    def write(self):
+        with open(self.device_file, 'w') as f:
+            json.dump(self.data, f)
 
 def create_class(class_name, noun):
     api_key = f0cal.CORE.config["api"].get("api_key")
@@ -16,23 +39,33 @@ def create_class(class_name, noun):
     return cls
 
 def _resolve_reference_type(ref):
-    match = re.match(REFERENCE_REGEX, ref)
-    if match:
-        return 'reference'
-    elif ref.startswith(':'):
+    # match = re.match(REFERENCE_REGEX, ref)
+    # if match:
+    #     return 'reference'
+    if ref.startswith(':'):
         return 'id'
-    else:
-        print('Object references should be in one of the following formats \n<name>/<version> with an optional '
-              '#revision or \n :<id>')
-        exit(1)
+
+    return 'name'
 def query(class_name, noun, ref):
     cls = create_class(class_name, noun)
     ref_type = _resolve_reference_type(ref)
     if ref_type == 'reference':
         print('Referencing objects is only supported from ids currently. Check back soon for full namespace resolution')
         exit(1)
-    _id = ref.replace(':', '')
-    inst = cls.from_id(_id)
+    if ref_type == 'name':
+        # Instance names are resolved locally
+        if noun == 'instance':
+            device_config = DeviceFileParser(f0cal.CORE.config['api']['device_file'])
+            if ref not in device_config:
+                print(
+                    'Name instance name not found. If you created in a different env try querying '
+                    'all instances: \n f0cal farm instance query and then referencing it via id \n :<id> ')
+                exit(1)
+            return cls.from_id(device_config[ref]['id'])
+        inst = cls.from_name(ref)
+    else:
+        _id = ref.replace(':', '')
+        inst = cls.from_id(_id)
     return inst
 
 

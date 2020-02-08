@@ -4,7 +4,7 @@ import os
 import argparse
 from time import time, sleep
 
-from f0cal.farm.client.utils import query, create_class, DeviceFileParser
+from f0cal.farm.client.utils import query, create_class, DeviceFileParser, InstanceStatusPrinter
 from f0cal.farm.client.__codegen__.cli import parse_update_string, printer, api_key_required
 from f0cal.farm.client.api_client import DeviceFarmApi
 
@@ -38,40 +38,28 @@ def _args_instance_create(parser):
     parser.add_argument("name", )
     parser.add_argument("--image", type=lambda name: query("Image", "image", name), required=True,)
     parser.add_argument("--device-type", type=lambda name: query("DeviceType", "device_type", name),required=True,)
-    parser.add_argument("--wait", required=False, action="store_true",)
-    parser.add_argument("--wait_time", type=int, required=False,)
+    parser.add_argument("--no-queue", required=False, action="store_true",
+                        help="Only create an instance if there is a device available immediately")
+    parser.add_argument("--no-block", required=False, action="store_true",
+                        help='Create an instance but do not wait for it become ready')
 
 @f0cal.entrypoint(["farm", "instance", "create"], args=_args_instance_create)
 @printer
 @api_key_required
-def _cli_instance_create(parser, core, name,  wait=False, wait_time=15, *args, **dargs):
+def _cli_instance_create(parser, core, name,  no_block=False, wait_time=15, *args, **dargs):
     device_config = DeviceFileParser(core.config['api']['device_file'])
     if name in device_config:
         print(f'ERROR: You have already name a device {name} please choose a different name')
         exit(1)
-    client = DeviceFarmApi(
-        api_key=core.config["api"].get("api_key"), api_url=core.config["api"]["api_url"]
-    )
 
     cls = create_class("Instance", "instance")
     inst = cls.create(**dargs)
+    print(f"Requested an instance of type {dargs['device_type'].name}")
     device_config[name] = {'id': inst.id}
     device_config.write()
-    if wait:
-        if wait_time is None:
-            wait_time = 15
-        timeout = time() + wait_time * 60
-        while inst.status != 'ready':
-            inst = cls.from_id(inst.id)
-            if inst.status == 'error':
-                print(f'There was an error start vm instance {inst.id} please contact F0cal')
-                exit(1)
-            if time() > timeout:
-                print(f"Error waited {wait_time} minutes but device still not ready")
-                exit(1)
-            print('Waiting for device to be ready')
-            sleep(20)
-        print(f'Device ready')
+    if not no_block:
+        inst_status = InstanceStatusPrinter(inst)
+        inst_status.block()
     return inst
 
 def args_instance_connect(parser):
@@ -90,3 +78,10 @@ def instance_connect(parser, core, instance, connection_args,*args, **kwargs):
     instance.connect(connection_type, connection_args)
 def devices_args(parser):
     parser.add_argument("name", )
+
+if __name__ == '__main__':
+    from f0cal import __main__
+    import sys
+    import shlex
+    sys.argv = shlex.split('f0cal farm instance create   my_pi   --device-type raspberry-pi/3bp   --image raspbian-lite/10@f0cal/device-farm ')
+    __main__.main()

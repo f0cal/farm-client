@@ -1,7 +1,12 @@
+from builtins import print
+
 from f0cal.farm.client import entities
 import f0cal
+from progress.bar import IncrementalBar
+from progress.spinner import MoonSpinner
 import re
 import json
+from time import sleep
 import os
 from f0cal.farm.client.api_client import DeviceFarmApi
 import wrapt
@@ -111,3 +116,48 @@ def printer(wrapped, instance, args, kwargs):
     else:
         print({k: v for k, v in out.__dict__.items() if not k.startswith("_")})
     return out
+
+class QueueingBar(IncrementalBar):
+    suffix = '%(spinner)s'
+    spinner_pos = 0
+    spinner_phases = MoonSpinner.phases
+    @property
+    def spinner(self):
+        self.spinner_pos = (self.spinner_pos + 1) % len(self.spinner_phases)
+        return self.spinner_phases[self.spinner_pos]
+
+class InstanceStatusPrinter:
+    def __init__(self, instance):
+        self.instance = instance
+    def block(self):
+        self._wait_queued()
+        self._wait_provisioing()
+
+    def _wait_queued(self):
+        if self.instance.status == 'queued':
+            print(f"No hardware immediately available")
+            original_queue_position = self.instance.queue_position
+            queue_position = original_queue_position
+            with QueueingBar(message=f'Current queue length: {queue_position}', max=original_queue_position) as bar:
+                while self.instance.status == 'queued':
+                    self.instance.refresh()
+                    if queue_position != self.instance.queue_position:
+                        queue_position = self.instance.queue_position
+                        bar.message=f'Current queue length {queue_position}'
+                        bar.next()
+                    bar.update()
+                    sleep(.25)
+                bar.finish()
+
+    def _wait_provisioing(self):
+        with IncrementalBar('Loading your device image', suffix=' [ %(elapsed_td)s/ 00:06:000 ]', max=360) as bar:
+            while self.instance.status == 'provisioning':
+                bar.next()
+                sleep(1)
+                self.instance.refresh()
+            bar.finish()
+        if self.instance.status == 'error':
+            print(f'There was an error starting instance {self.instance.id} please contact F0cal')
+            exit(1)
+        if self.instance.status == 'ready':
+            print('Your instance is ready to be used')

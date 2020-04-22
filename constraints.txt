@@ -1,2 +1,3 @@
 -e git+https://github.com/f0cal/f0cal#egg=plugnparse&subdirectory=plugnparse
 -e git+https://github.com/f0cal/f0cal#egg=f0cal&subdirectory=f0cal
+-e git+https://github.com/f0cal/my-device@dev#egg=f0cal.my-device

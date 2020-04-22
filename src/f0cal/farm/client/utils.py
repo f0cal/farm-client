@@ -151,10 +151,13 @@ class InstanceStatusPrinter:
 
     def _wait_provisioing(self):
         with IncrementalBar('Loading your device image', suffix=' [ %(elapsed_td)s/ 00:06:000 ]', max=360) as bar:
+            elapsed_time = 0
             while self.instance.status == 'provisioning':
                 bar.next()
                 sleep(1)
-                self.instance.refresh()
+                elapsed_time += 1
+                if elapsed_time % 5 == 0:
+                    self.instance.refresh()
             bar.finish()
         if self.instance.status == 'error':
             print(f'There was an error starting instance {self.instance.id} please contact F0cal')

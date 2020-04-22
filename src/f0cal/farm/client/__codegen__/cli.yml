@@ -33,14 +33,17 @@ entrypoints:
         required: true
         type:
           noun: image
+  - noun: image
+    verb: create
+    instance: false
+    args:
+      - name: path
+        positional: true
+        required: true
 
-      - name: wait
-        required: false
-        kwargs:
-          action: "'store_true'"
-      - name: wait_time
-        required: false
-        type: int
+      - name: image_reference
+        positional: true
+        required: true
 
   - noun: instance
     verb: retrieve

@@ -1,6 +1,8 @@
 from builtins import super
 
 from f0cal.farm.client.__codegen__.entities import *
+from f0cal.farm.client.utils import create_class
+
 from f0cal.my_device.conan_utils.conan_data_parser import ConanData
 import urllib
 import os
@@ -8,6 +10,9 @@ import shlex
 import subprocess
 import yaml
 from time import sleep, time
+import logging
+
+LOG = logging.getLogger(__name__)
 
 
 class Instance(Instance):
@@ -37,12 +42,24 @@ class Instance(Instance):
         print('*' * 80)
         os.execvp(ssh_bin, connection_args)
     def _format_ssh_args(self, connection_args):
+        user = self._get_user()
+
         ip , port = self._get_url()
-        connection_args = ['ssh'] + connection_args + [f'farmer@{ip}']
+        connection_args = ['ssh'] + connection_args + [f'{user}@{ip}']
         if port:
             connection_args = connection_args + ['-p', f'{port}']
         return connection_args
+    def _get_user(self):
+        try:
+            image_id = self.image_id
+            img_cls = create_class("Image", "image")
 
+            image = img_cls.from_id(image_id)
+            return image.admin_user
+        except Exception as e:
+            LOG.error(e)
+            print('Error: Could not get user for the image this instance is using')
+            exit(1)
     def _get_url(self):
         ip = self.ip
         if ip is None:

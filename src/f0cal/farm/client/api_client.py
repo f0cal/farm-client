@@ -4,7 +4,8 @@ from encodings.punycode import selective_find
 import requests
 import logging
 import wrapt
-from f0cal.farm.client.entities import EntityBase
+from f0cal.farm.client.__codegen__.entities import EntityBase
+
 LOG = logging.getLogger(__name__)
 
 

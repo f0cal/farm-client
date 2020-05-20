@@ -1,9 +1,9 @@
 from builtins import super
 
 from f0cal.farm.client.__codegen__.entities import *
-from f0cal.farm.client.utils import create_class
+from f0cal.farm.client.api_client import DeviceFarmApi
 
-from f0cal.my_device.conan_utils.conan_data_parser import ConanData
+import f0cal
 import urllib
 import os
 import shlex
@@ -52,8 +52,10 @@ class Instance(Instance):
     def _get_user(self):
         try:
             image_id = self.image_id
-            img_cls = create_class("Image", "image")
-
+            api_key = f0cal.CORE.config["api"].get("api_key")
+            api_url = f0cal.CORE.config["api"]["api_url"]
+            client = DeviceFarmApi(api_url, api_key)
+            img_cls = type('Image', (Image,), {"CLIENT": client, "NOUN": 'image'})
             image = img_cls.from_id(image_id)
             return image.admin_user
         except Exception as e:
@@ -67,45 +69,5 @@ class Instance(Instance):
         parts = urllib.parse.urlparse(ip)
         return parts.hostname, parts.port
 
-
-class Image(Image):
-    CONANDATA_FILE = 'conandata.yml'
-    CONANFILE = 'conanfile.py'
-
-    @classmethod
-    def _resolve_remote_name(cls, remote_url):
-        ret = subprocess.run(shlex.split('conan remote list'), capture_output=True)
-        output = ret.stdout.decode()
-        output = output.replace('[Verify SSL: True]', '')
-        output = output.replace('[Verify SSL: False]', '')
-
-        remotes = yaml.load(output)
-        for name, url in remotes.items():
-            if url == remote_url:
-                return name
-        print(f"Error could not find conan remote with url {remote_url}. Please add this conan remote and authenticate")
-    @classmethod
-    def _conan_push(cls, image_reference,  path, remote_name):
-        subprocess.run(shlex.split(f'conan export {path} {image_reference}'))
-        subprocess.run(shlex.split(f'conan upload {image_reference} -r {remote_name}'))
-
-
-    @classmethod
-    def create(cls, path, image_reference):
-        conandata_path = os.path.join(path, cls.CONANDATA_FILE)
-        conanfile_path = os.path.join(path, cls.CONANFILE)
-        assert os.path.exists(conandata_path), f"No conandata at {conandata_path} "
-        assert os.path.exists(conanfile_path), f"No conanfile at {conanfile_path}"
-
-        conandata = ConanData(conandata_path)
-
-        image = super().create(name=image_reference, admin_user=conandata._admin_user,
-                               admin_password=conandata._admin_password)
-
-        remote_url = image.remote
-        remote_name = cls._resolve_remote_name(remote_url)
-        cls._conan_push(image_reference, path, remote_name)
-
-        return image
 
 

@@ -74,7 +74,8 @@ def instance_connect(parser, core, instance, connection_args,*args, **kwargs):
     else:
         print('Only ssh connection are supported at the moment. Please use --ssh')
         exit(1)
-    connection_args.remove('--')
+    if '--' in connection_args:
+        connection_args.remove('--')
     instance.connect(connection_type, connection_args)
 def devices_args(parser):
     parser.add_argument("name", )

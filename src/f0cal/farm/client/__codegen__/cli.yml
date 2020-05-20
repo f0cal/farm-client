@@ -34,14 +34,6 @@ entrypoints:
         type:
           noun: image
 
-      - name: wait
-        required: false
-        kwargs:
-          action: "'store_true'"
-      - name: wait_time
-        required: false
-        type: int
-
   - noun: instance
     verb: retrieve
     instance: true

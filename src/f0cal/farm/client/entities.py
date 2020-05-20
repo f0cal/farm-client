@@ -1,8 +1,19 @@
+from builtins import super
+
 from f0cal.farm.client.__codegen__.entities import *
+from f0cal.farm.client.api_client import DeviceFarmApi
+
+import f0cal
 import urllib
 import os
 import shlex
+import subprocess
+import yaml
 from time import sleep, time
+import logging
+
+LOG = logging.getLogger(__name__)
+
 
 class Instance(Instance):
     def connect(self, connection_type, connection_args):
@@ -28,18 +39,35 @@ class Instance(Instance):
         connection_args = self._format_ssh_args(connection_args)
         print('*'*80)
         print('Starting an SSH session with your instance. Press CTRL+d to exit')
-        print('*'*80)
+        print('*' * 80)
         os.execvp(ssh_bin, connection_args)
     def _format_ssh_args(self, connection_args):
+        user = self._get_user()
+
         ip , port = self._get_url()
-        connection_args = ['ssh'] + connection_args + [f'farmer@{ip}']
+        connection_args = ['ssh'] + connection_args + [f'{user}@{ip}']
         if port:
             connection_args = connection_args + ['-p', f'{port}']
         return connection_args
+    def _get_user(self):
+        try:
+            image_id = self.image_id
+            api_key = f0cal.CORE.config["api"].get("api_key")
+            api_url = f0cal.CORE.config["api"]["api_url"]
+            client = DeviceFarmApi(api_url, api_key)
+            img_cls = type('Image', (Image,), {"CLIENT": client, "NOUN": 'image'})
+            image = img_cls.from_id(image_id)
+            return image.admin_user
+        except Exception as e:
+            LOG.error(e)
+            print('Error: Could not get user for the image this instance is using')
+            exit(1)
     def _get_url(self):
         ip = self.ip
         if ip is None:
             print('This instance does not have an ip configured yet. Are you sure its ready?')
         parts = urllib.parse.urlparse(ip)
         return parts.hostname, parts.port
+
+
 

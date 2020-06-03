@@ -1,6 +1,7 @@
 entities:
   - name: device_type
   - name: image
+  - name: cluster
 
   - name: instance
     verbs:

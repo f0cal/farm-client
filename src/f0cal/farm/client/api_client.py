@@ -1,9 +1,7 @@
-# TODO move this into in a sepereate package
-from encodings.punycode import selective_find
-
 import requests
 import logging
 import wrapt
+import json
 from f0cal.farm.client.entities import EntityBase
 LOG = logging.getLogger(__name__)
 
@@ -34,10 +32,15 @@ class DeviceFarmApi:
             print('ERROR: Unauthorized\nPlease ensure you api key is valid')
             exit(1)
         elif response.status_code >= 400:
-            if 'errors' in response.json():
-                print(f"ERROR Bad request: \n{response.json()['errors'][0]['code']} ")
+            try:
+                response_json = response.json()
+            except json.decoder.JSONDecodeError:
+                print(f"ERROR Bad request")
+                exit(1)
+            if 'errors' in response_json:
+                print(f"ERROR Bad request: \n{response_json['errors'][0]['code']} ")
             else:
-                print(f"ERROR Bad request: \n{response.json()} Please contact support@f0cal.com")
+                print(f"ERROR Bad request: \n{response_json} Please contact support@f0cal.com")
             exit(1)
 
         else:
@@ -47,6 +50,11 @@ class DeviceFarmApi:
     def _check_response(self, response):
         if not response.ok:
             self._handle_error_response(response)
+    def _get_base_url(self, remote=None):
+        if remote is None:
+            return f'{self.url}/api'
+        if remote is not None:
+            return f'{self.url}'
 
     def _prep_data(self, data):
         for key, val in data.items():
@@ -120,27 +128,27 @@ class DeviceFarmApi:
 
         return response.json()['data']
 
-    def create(self, noun, data):
+    def create(self, noun, data, remote=None):
         url = f'{self.url}/{noun}/'
         return self._post(url, data)
 
-    def update(self, noun, _id,  data):
+    def update(self, noun, _id,  data, remote=None):
         url = f'{self.url}/{noun}/{_id}'
         return self._patch(url, data)
 
-    def delete(self, noun, _id):
+    def delete(self, noun, _id, remote=None):
         url = f'{self.url}/{noun}/{_id}'
         return self._delete(url)
 
-    def list(self, noun):
+    def list(self, noun, remote=None):
         url = f'{self.url}/{noun}/'
         return self._get(url)
 
-    def retrieve(self, noun, _id):
+    def retrieve(self, noun, _id, remote=None):
         url = f'{self.url}/{noun}/{_id}'
         return self._get(url)
 
-    def action(self, noun, _id, verb, data):
+    def action(self, noun, _id, verb, data, remote=None):
         url = f'{self.url}/{noun}/{_id}/{verb}/'
         return self._post(url, data)
 

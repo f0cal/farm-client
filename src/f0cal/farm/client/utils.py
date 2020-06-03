@@ -10,16 +10,17 @@ from time import sleep
 import os
 from f0cal.farm.client.api_client import DeviceFarmApi
 import wrapt
+import sys
 REFERENCE_REGEX = '([\\w]*)\\/([\\w]*)(#[\\d]*)?$'
 
-class DeviceFileParser:
-    def __init__(self, device_file):
+class JsonFileParser:
+    def __init__(self, json_file):
         '''Parser for current device config'''
-        self.device_file = device_file
-        if os.path.exists(device_file):
-            self.data = json.load(open(device_file))
+        self.json_file = json_file
+        if os.path.exists(json_file):
+            self.data = json.load(open(json_file))
         else:
-            os.makedirs(os.path.dirname(device_file), exist_ok=True)
+            os.makedirs(os.path.dirname(json_file), exist_ok=True)
             self.data = {}
 
     def __getitem__(self, item):
@@ -31,12 +32,22 @@ class DeviceFileParser:
         return self.data.__iter__()
 
     def write(self):
-        with open(self.device_file, 'w') as f:
+        with open(self.json_file, 'w') as f:
             json.dump(self.data, f)
+def resolve_remote_url(remote_name):
+    remotes_file = JsonFileParser(f0cal.CORE.config['api']['remotes_file'])
+    if remote_name in remotes_file:
+        return remotes_file[remote_name]
+    print(f'Remote {remote_name} not found. Please configure the remote first using: f0cal remote add '
+          f'<remote_name>  <remote_url>')
+    exit(1)
 
-def create_class(class_name, noun):
+def create_class(class_name, noun, remote_url=None):
     api_key = f0cal.CORE.config["api"].get("api_key")
-    api_url = f0cal.CORE.config["api"]["api_url"]
+    if remote_url is not None:
+        api_url = remote_url
+    else:
+        api_url = f0cal.CORE.config["api"]["api_url"]
     client = DeviceFarmApi(api_url, api_key)
     cls = type(
         class_name, (getattr(entities, class_name),), {"CLIENT": client, "NOUN": noun}
@@ -51,8 +62,8 @@ def _resolve_reference_type(ref):
         return 'id'
 
     return 'name'
-def query(class_name, noun, ref):
-    cls = create_class(class_name, noun)
+def query(class_name, noun, ref, remote=None):
+    cls = create_class(class_name, noun, remote)
     ref_type = _resolve_reference_type(ref)
     if ref_type == 'reference':
         print('Referencing objects is only supported from ids currently. Check back soon for full namespace resolution')
@@ -60,7 +71,7 @@ def query(class_name, noun, ref):
     if ref_type == 'name':
         # Instance names are resolved locally
         if noun == 'instance':
-            device_config = DeviceFileParser(f0cal.CORE.config['api']['device_file'])
+            device_config = JsonFileParser(f0cal.CORE.config['api']['device_file'])
             if ref not in device_config:
                 print(
                     'Name instance name not found. If you created in a different env try querying '

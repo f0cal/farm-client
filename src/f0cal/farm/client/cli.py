@@ -39,10 +39,8 @@ def _args_instance_create(parser):
     parser.add_argument("--no-block", required=False, action="store_true",
                         help='Create an instance but do not wait for it become ready')
     parser.add_argument("--remote", "-r", type=lambda remote_name: resolve_remote_url(remote_name), required=True)
-    ns, _ = parser.parse_known_args()
-    remote = ns.remote
-    parser.add_argument("--image", type=lambda name: query("Image", "image", name, remote), required=True,)
-    parser.add_argument("--device-type", type=lambda name: query("DeviceType", "device_type", name, remote),required=True,)
+    parser.add_argument("--image", type=lambda name: query("Image", "image", name, remote=True), required=True,)
+    parser.add_argument("--device-type", type=lambda name: query("DeviceType", "device_type", name, remote=True),required=True,)
 @f0cal.entrypoint(["farm", "instance", "create"], args=_args_instance_create)
 @printer
 @api_key_required
@@ -64,8 +62,8 @@ def _cli_instance_create(parser, core, name, remote,  no_block=False, wait_time=
 
 def args_instance_connect(parser):
     parser.add_argument("--remote", "-r", type=lambda remote_name: resolve_remote_url(remote_name), required=True)
-    ns, _ = parser.parse_known_args()
-    remote = ns.remote
+    # ns, _ = parser.parse_known_args()
+    # remote = ns.remote
 
     parser.add_argument( "instance", type=lambda name: query("Instance", "instance", name, remote),)
     parser.add_argument('connection_args', nargs=argparse.REMAINDER)

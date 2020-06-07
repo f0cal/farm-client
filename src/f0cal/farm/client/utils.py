@@ -1,5 +1,5 @@
 from builtins import print
-
+import argparse
 from f0cal.farm.client import entities
 import f0cal
 from progress.bar import IncrementalBar
@@ -42,10 +42,15 @@ def resolve_remote_url(remote_name):
           f'<remote_name>  <remote_url>')
     exit(1)
 
-def create_class(class_name, noun, remote_url=None):
+def create_class(class_name, noun, remote=False):
     api_key = f0cal.CORE.config["api"].get("api_key")
-    if remote_url is not None:
-        api_url = remote_url
+    if remote:
+        # TODO THIS A HACKY WORKAROUND FOR THE PLUGPARSE RUNNING ALL ARG SETTERS
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--remote", "-r", type=lambda remote_name: resolve_remote_url(remote_name), required=True)
+        ns, _  = parser.parse_known_args()
+
+        api_url = ns.remote
     else:
         api_url = f0cal.CORE.config["api"]["api_url"]
     client = DeviceFarmApi(api_url, api_key)

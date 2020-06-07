@@ -18,7 +18,7 @@
 
 {%- elif type is mapping -%}
   {% if remote %}
-  type=lambda name: query("{{ CLASS_NAME(type['noun']) }}", "{{ type['noun'] }}", name, remote),
+  type=lambda name: query("{{ CLASS_NAME(type['noun']) }}", "{{ type['noun'] }}", name, remote=True),
   {% else %}
   type=lambda name: query("{{ CLASS_NAME(type['noun']) }}", "{{ type['noun'] }}", name),
   {% endif %}
@@ -52,8 +52,6 @@ def {{ ARGSETTER_NAME(noun, verb) }}(parser):
   {% endif %}
   {% if remote %}
   parser.add_argument( "--remote", "-r", type=lambda remote_name: resolve_remote_url(remote_name),required=True,)
-  ns, _ = parser.parse_known_args()
-  remote = ns.remote
   {% endif %}
 
   {% for type_data in accepts %}

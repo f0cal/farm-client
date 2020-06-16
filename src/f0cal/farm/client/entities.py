@@ -48,6 +48,8 @@ class Instance(Instance):
         connection_args = ['ssh'] + connection_args + [f'{user}@{ip}']
         if port:
             connection_args = connection_args + ['-p', f'{port}']
+        print(connection_args)
+        System.exit(1)
         return connection_args
     def _get_user(self):
         try:

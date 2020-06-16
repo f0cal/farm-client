@@ -20,7 +20,6 @@ class Instance(Instance):
         if not self.status == 'ready':
             print('The instance is not ready yet')
             exit(1)
-        print(connection_type)
         _fn = getattr(self, f'_connect_{connection_type}', None)
         if not _fn:
             print(f'{connection_type} connections not supported')
@@ -43,11 +42,10 @@ class Instance(Instance):
         os.execvp(ssh_bin, connection_args)
     def _format_ssh_args(self, connection_args):
         user = self._get_user()
-
         ip , port = self._get_url()
-        connection_args = ['ssh'] + connection_args + [f'{user}@{ip}']
         if port:
-            connection_args = connection_args + ['-p', f'{port}']
+            connection_args =   ['-p', f'{port}'] + connection_args
+        connection_args = ['ssh']+ [f'{user}@{ip}'] + connection_args
         return connection_args
     def _get_user(self):
         try:

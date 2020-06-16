@@ -45,7 +45,7 @@ class Instance(Instance):
         user = self._get_user()
         ip , port = self._get_url()
         if port:
-              connection_args =   ['-p', f'{port}'] + connection_args
+            connection_args =   ['-p', f'{port}'] + connection_args
         connection_args = ['ssh']+ [f'{user}@{ip}'] + connection_args
         return connection_args
     def _get_user(self):

@@ -20,7 +20,6 @@ class Instance(Instance):
         if not self.status == 'ready':
             print('The instance is not ready yet')
             exit(1)
-        print(connection_type)
         _fn = getattr(self, f'_connect_{connection_type}', None)
         if not _fn:
             print(f'{connection_type} connections not supported')

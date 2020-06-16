@@ -49,7 +49,7 @@ def _args_instance_create(parser):
 def _cli_instance_create(parser, core, name,  no_block=False, wait_time=15, *args, **dargs):
     device_config = DeviceFileParser(core.config['api']['device_file'])
     if name in device_config:
-        print(f'ERROR: You have already name a device {name} please choose a different name')
+        print(f'ERROR: You already have a device named {name} please choose a different name')
         exit(1)
 
     cls = create_class("Instance", "instance")

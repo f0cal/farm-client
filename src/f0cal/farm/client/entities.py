@@ -43,13 +43,10 @@ class Instance(Instance):
         os.execvp(ssh_bin, connection_args)
     def _format_ssh_args(self, connection_args):
         user = self._get_user()
-
         ip , port = self._get_url()
-        connection_args = ['ssh'] + connection_args + [f'{user}@{ip}']
         if port:
-            connection_args = connection_args + ['-p', f'{port}']
-        print(connection_args)
-        System.exit(1)
+              connection_args =   ['-p', f'{port}'] + connection_args
+        connection_args = ['ssh']+ [f'{user}@{ip}'] + connection_args
         return connection_args
     def _get_user(self):
         try:

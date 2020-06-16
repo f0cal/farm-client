@@ -68,7 +68,7 @@ def args_instance_connect(parser):
 
 @f0cal.entrypoint(["farm", "instance", "connect"], args=args_instance_connect)
 def instance_connect(parser, core, instance, connection_args,*args, **kwargs):
-    print('got here')
+    print('connection_args')
     if '--ssh' in connection_args:
         connection_type = 'ssh'
         connection_args.remove('--ssh')

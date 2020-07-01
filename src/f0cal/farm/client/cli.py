@@ -65,7 +65,7 @@ def args_instance_connect(parser):
     # ns, _ = parser.parse_known_args()
     # remote = ns.remote
 
-    parser.add_argument( "instance", type=lambda name: query("Instance", "instance", name, remote),)
+    parser.add_argument( "instance", type=lambda name: query("Instance", "instance", name, remote=True),)
     parser.add_argument('connection_args', nargs=argparse.REMAINDER)
 
 

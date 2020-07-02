@@ -47,7 +47,7 @@ def _args_instance_create(parser):
 def _cli_instance_create(parser, core, name, remote,  no_block=False, wait_time=15, *args, **dargs):
     device_config = JsonFileParser(core.config['api']['device_file'])
     if name in device_config:
-        print(f'ERROR: You have already name a device {name} please choose a different name')
+        print(f'ERROR: You already have a device named {name} please choose a different name')
         exit(1)
 
     cls = create_class("Instance", "instance", remote)
@@ -77,7 +77,8 @@ def instance_connect(parser, core, instance, connection_args,*args, **kwargs):
     else:
         print('Only ssh connection are supported at the moment. Please use --ssh')
         exit(1)
-    connection_args.remove('--')
+    if '--' in connection_args:
+        connection_args.remove('--')
     instance.connect(connection_type, connection_args)
 
 def remote_add_args(parser):

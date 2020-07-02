@@ -1,9 +1,21 @@
 import requests
 import logging
 import wrapt
-import json
-from f0cal.farm.client.entities import EntityBase
+from f0cal.farm.client.__codegen__.entities import EntityBase
+
 LOG = logging.getLogger(__name__)
+
+
+class ServerError(Exception):
+    pass
+
+
+class ClientError(Exception):
+    pass
+
+
+class ConnectionError(Exception):
+    pass
 
 
 @wrapt.decorator
@@ -23,14 +35,13 @@ class DeviceFarmApi:
     @staticmethod
     def _handle_error_response(response):
         if response.status_code >= 500:
-            print(
-                f"There was an Server ERROR in the F0cal Device Farm API at {response.request.path_url}. Please contact Please contact support@f0cal.com")
-            LOG.debug(f'Error at url {response.request.path_url}: {response.text}')
-            exit(1)
+            err_str = f"There was an Server ERROR in the F0cal Device Farm API at {response.request.path_url}. Please contact Please contact support@f0cal.com"
+            raise ServerError(err_str)
 
         elif response.status_code == 401:
-            print('ERROR: Unauthorized\nPlease ensure you api key is valid')
-            exit(1)
+            err_str = 'ERROR: Unauthorized\nPlease ensure you api key is valid'
+            raise ClientError(err_str)
+
         elif response.status_code >= 400:
             try:
                 response_json = response.json()
@@ -40,8 +51,8 @@ class DeviceFarmApi:
             if 'errors' in response_json:
                 print(f"ERROR Bad request: \n{response_json['errors'][0]['code']} ")
             else:
-                print(f"ERROR Bad request: \n{response_json} Please contact support@f0cal.com")
-            exit(1)
+                err_str = f"ERROR Bad request: \n{response.json()} Please contact support@f0cal.com"
+            raise ClientError(err_str)
 
         else:
             print("Unknown Error from F0cal")
@@ -74,9 +85,9 @@ class DeviceFarmApi:
         try:
             response = requests.get(url, *args, **kwargs)
         except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout) as e:
-            print(f'ERROR: {e.args[0]}')
-            print("There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com")
-            exit(1)
+            err_str = f"There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com" \
+                      f"\nMore info:\n{e.args[0]}"
+            raise ConnectionError(err_str)
 
         self._check_response(response)
 
@@ -90,9 +101,9 @@ class DeviceFarmApi:
         try:
             response = requests.post(url, json={'data': data}, *args, **kwargs)
         except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout) as e:
-            print(f'ERROR: {e.args[0]}')
-            print("There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com")
-            exit(1)
+            err_str = f"There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com" \
+                      f"\nMore info:\n{e.args[0]}"
+            raise ConnectionError(err_str)
 
         self._check_response(response)
         return response.json()['data']
@@ -106,9 +117,10 @@ class DeviceFarmApi:
         try:
             response = requests.patch(url, json={'data': data}, *args, **kwargs)
         except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout) as e:
-            print(f'ERROR: {e.args[0]}')
-            print("There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com")
-            exit(1)
+            LOG.error(f'ERROR: {e.args[0]}')
+            err_str = f"There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com" \
+                      f"\nMore info:\n{e.args[0]}"
+            raise ConnectionError(err_str)
 
         self._check_response(response)
         return response.json()['data']
@@ -121,9 +133,9 @@ class DeviceFarmApi:
         try:
             response = requests.delete(url, *args, **kwargs)
         except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout) as e:
-            print(f'ERROR: {e.args[0]}')
-            print("There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com")
-            exit(1)
+            err_str = f"There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com" \
+                      f"\nMore info:\n{e.args[0]}"
+            raise ConnectionError(err_str)
         self._check_response(response)
 
         return response.json()['data']

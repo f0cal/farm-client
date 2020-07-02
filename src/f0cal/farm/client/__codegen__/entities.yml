@@ -1,6 +1,9 @@
 entities:
   - name: device_type
   - name: image
+    verbs:
+      - name: push
+      - name: pull
   - name: cluster
 
   - name: instance
@@ -10,5 +13,6 @@ entities:
       - name: connect
       - name: save
   - name: ssh_key
+  - name: known_instance_factory
 
 

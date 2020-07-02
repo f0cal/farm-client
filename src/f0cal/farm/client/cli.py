@@ -12,6 +12,7 @@ def config_file():
     api_url = https://app.f0cal.com/api
     device_file = ${f0cal:prefix}/etc/f0cal/devices.json
     remotes_file = ${f0cal:prefix}/etc/f0cal/remotes.json
+    images_file = ${f0cal:prefix}/etc/f0cal/images.json
     
     '''
 
@@ -94,3 +95,23 @@ def add_remote(parser, core, name, url):
 def remote_list(parser, core):
     remotes_file = JsonFileParser(core.config['api']['remotes_file'])
     print(tabulate(remotes_file.data.items(), headers=["Name", "URL"]))
+
+def image_push_args(parser):
+    parser.add_argument("--remote", "-r", type=lambda remote_name: resolve_remote_url(remote_name), required=True)
+    parser.add_argument("local_image", help='Name of locally cached image')
+@f0cal.entrypoint(["farm", "image", "push"], args=image_push_args)
+def image_push(parser, core, remote, local_image):
+    img_cls = create_class("Image", "image", remote=True)
+    images_file = JsonFileParser(f0cal.CORE.config['api']['images_file'])
+    if local_image not in images_file:
+        print(f'ERROR: Image {local_image} does not exist locally')
+        exit(1)
+    local_image_data = images_file[local_image]
+
+    img = img_cls.create(local_image_data['data'])
+    img._conan_push()
+    factory_class = create_class('KnownInstanceFactory', 'known_instance_factory', remote=True)
+    for factory in local_image_data['known_instance_factories']:
+        print(factory)
+        inst = factory_class.create(**factory)
+

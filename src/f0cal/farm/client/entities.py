@@ -36,17 +36,19 @@ class Instance(Instance):
     def _connect_ssh(self, connection_args, remote):
         ssh_bin = '/usr/bin/ssh'
         connection_args = self._format_ssh_args(connection_args, remote)
-        print('*'*80)
+        print('*' * 80)
         print('Starting an SSH session with your instance. Press CTRL+d to exit')
         print('*' * 80)
         os.execvp(ssh_bin, connection_args)
+
     def _format_ssh_args(self, connection_args, remote):
         user = self._get_user(remote)
-        ip , port = self._get_url()
+        ip, port = self._get_url()
         if port:
-            connection_args =   ['-p', f'{port}'] + connection_args
-        connection_args = ['ssh']+ [f'{user}@{ip}'] + connection_args
+            connection_args = ['-p', f'{port}'] + connection_args
+        connection_args = ['ssh'] + [f'{user}@{ip}'] + connection_args
         return connection_args
+
     def _get_user(self, remote):
         try:
             image_id = self.image_id
@@ -59,14 +61,45 @@ class Instance(Instance):
             LOG.error(e)
             print('Error: Could not get user for the image this instance is using')
             exit(1)
+
     def _get_url(self):
         ip = self.ip
         if ip is None:
             print('This instance does not have an ip configured yet. Are you sure its ready?')
         parts = urllib.parse.urlparse(ip)
         return parts.hostname, parts.port
+
     def save(self, *args, **kwargs):
         return self._do_verb('save', kwargs)
 
 
+class Image(Image):
+    def _conan_pull(self):
+        print('!' * 80)
+        print('CONAN PULL IS NOT YET IMPLEMENTED PLEASE MANUALLY PULL THE IMAGE ')
+        print('!' * 80)
 
+    def _conan_push(self):
+        print('!' * 80)
+        print('CONAN PUSH IS NOT YET IMPLEMENTED PLEASE MANUALLY PUSH THE IMAGE ')
+        print('!' * 80)
+
+    def serilaze(self):
+        # TODO MOVE JSONFILE PARSER TO AVOIND CIRCULAR IMPORT AND IMPORT UP TOP
+        from f0cal.farm.client.utils import JsonFileParser
+        images_file = JsonFileParser(f0cal.CORE.config['api']['images_file'])
+        if self.name in images_file:
+            raise Exception(f'The image {self.name} already exists locally')
+
+        for factory in self.known_instance_factories:
+            factory.pop('id')
+        images_file[self.name] = {
+            'data': {'name': self.name, 'admin_user': self.admin_user, 'admin_password': self.admin_password},
+            'known_instance_factories': self.known_instance_factories}
+        images_file.write()
+
+
+def pull(self):
+    self._conan_pull()
+    self.serilaze()
+    return self

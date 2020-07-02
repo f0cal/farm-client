@@ -36,6 +36,17 @@ entrypoints:
         required: true
         type:
           noun: image
+  - noun: image
+    verb: pull
+    remote: True
+    instance: true
+    requires_api_key: true
+    args:
+      - name: image
+        positional: true
+        required: true
+        type:
+          noun: image
 
   - noun: instance
     verb: retrieve

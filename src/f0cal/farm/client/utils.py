@@ -77,7 +77,7 @@ def query(class_name, noun, ref, remote=None):
         if ref_type == 'name':
             # Instance names are resolved locally
             if noun == 'instance':
-                device_config = DeviceFileParser(f0cal.CORE.config['api']['device_file'])
+                device_config = JsonFileParser(f0cal.CORE.config['api']['device_file'])
                 if ref not in device_config:
                     print(
                         'Name instance name not found. If you created in a different env try querying '

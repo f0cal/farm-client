@@ -2,7 +2,7 @@ from builtins import super
 
 from f0cal.farm.client.__codegen__.entities import *
 from f0cal.farm.client.api_client import DeviceFarmApi
-
+import argparse
 import f0cal
 import urllib
 import os
@@ -16,7 +16,7 @@ LOG = logging.getLogger(__name__)
 
 
 class Instance(Instance):
-    def connect(self, connection_type, connection_args):
+    def connect(self, connection_type, connection_args, remote):
         if not self.status == 'ready':
             print('The instance is not ready yet')
             exit(1)
@@ -24,7 +24,7 @@ class Instance(Instance):
         if not _fn:
             print(f'{connection_type} connections not supported')
             exit(1)
-        return _fn(connection_args)
+        return _fn(connection_args, remote)
 
     def destroy(self):
         return self.stop()
@@ -33,26 +33,25 @@ class Instance(Instance):
         print('Stopping instance')
         return self._do_verb('stop', {})
 
-    def _connect_ssh(self, connection_args):
+    def _connect_ssh(self, connection_args, remote):
         ssh_bin = '/usr/bin/ssh'
-        connection_args = self._format_ssh_args(connection_args)
+        connection_args = self._format_ssh_args(connection_args, remote)
         print('*'*80)
         print('Starting an SSH session with your instance. Press CTRL+d to exit')
         print('*' * 80)
         os.execvp(ssh_bin, connection_args)
-    def _format_ssh_args(self, connection_args):
-        user = self._get_user()
+    def _format_ssh_args(self, connection_args, remote):
+        user = self._get_user(remote)
         ip , port = self._get_url()
         if port:
             connection_args =   ['-p', f'{port}'] + connection_args
         connection_args = ['ssh']+ [f'{user}@{ip}'] + connection_args
         return connection_args
-    def _get_user(self):
+    def _get_user(self, remote):
         try:
             image_id = self.image_id
             api_key = f0cal.CORE.config["api"].get("api_key")
-            api_url = f0cal.CORE.config["api"]["api_url"]
-            client = DeviceFarmApi(api_url, api_key)
+            client = DeviceFarmApi(remote, api_key)
             img_cls = type('Image', (Image,), {"CLIENT": client, "NOUN": 'image'})
             image = img_cls.from_id(image_id)
             return image.admin_user
@@ -66,6 +65,8 @@ class Instance(Instance):
             print('This instance does not have an ip configured yet. Are you sure its ready?')
         parts = urllib.parse.urlparse(ip)
         return parts.hostname, parts.port
+    def save(self, *args, **kwargs):
+        return self._do_verb('save', kwargs)
 
 
 

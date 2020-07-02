@@ -99,7 +99,22 @@ entrypoints:
         required: true
         type:
           noun: instance
-
+  - noun: instance
+    verb: save
+    remote: True
+    instance: true
+    args:
+      - name: instance
+        positional: true
+        required: true
+        type:
+          noun: instance
+      - name: image-name
+        positional: false
+        required: true
+      - name: version
+        positional: false
+        required: true
   - noun: ssh_key
     verb:  query
     args:

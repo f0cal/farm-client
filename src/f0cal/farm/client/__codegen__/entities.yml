@@ -8,6 +8,7 @@ entities:
       - name: start
       - name: stop
       - name: connect
+      - name: save
   - name: ssh_key
 
 

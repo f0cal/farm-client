@@ -70,7 +70,7 @@ def args_instance_connect(parser):
 
 
 @f0cal.entrypoint(["farm", "instance", "connect"], args=args_instance_connect)
-def instance_connect(parser, core, instance, connection_args,*args, **kwargs):
+def instance_connect(parser, core, instance, connection_args, remote, *args, **kwargs):
     if '--ssh' in connection_args:
         connection_type = 'ssh'
         connection_args.remove('--ssh')
@@ -79,7 +79,7 @@ def instance_connect(parser, core, instance, connection_args,*args, **kwargs):
         exit(1)
     if '--' in connection_args:
         connection_args.remove('--')
-    instance.connect(connection_type, connection_args)
+    instance.connect(connection_type, connection_args, remote)
 
 def remote_add_args(parser):
     parser.add_argument("name", help="Your local alias for the remote cluster")

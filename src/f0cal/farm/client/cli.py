@@ -108,7 +108,7 @@ def image_push(parser, core, remote, local_image):
         exit(1)
     local_image_data = images_file[local_image]
 
-    img = img_cls.create(local_image_data['data'])
+    img = img_cls.create(**local_image_data['data'])
     img._conan_push()
     factory_class = create_class('KnownInstanceFactory', 'known_instance_factory', remote=True)
     for factory in local_image_data['known_instance_factories']:

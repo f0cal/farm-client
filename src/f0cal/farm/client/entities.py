@@ -98,8 +98,7 @@ class Image(Image):
             'known_instance_factories': self.known_instance_factories}
         images_file.write()
 
-
-def pull(self):
-    self._conan_pull()
-    self.serilaze()
-    return self
+    def pull(self):
+        self._conan_pull()
+        self.serilaze()
+        return self

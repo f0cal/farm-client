@@ -1,6 +1,7 @@
 import requests
 import logging
 import wrapt
+import json
 from f0cal.farm.client.__codegen__.entities import EntityBase
 
 LOG = logging.getLogger(__name__)
@@ -29,7 +30,7 @@ def api_key_required(wrapped, instance, args, kwargs):
 class DeviceFarmApi:
 
     def __init__(self, api_url, api_key=None):
-        self.url = api_url
+        self.url = f'{api_url}/api'
         self.api_key = api_key
 
     @staticmethod
@@ -46,10 +47,9 @@ class DeviceFarmApi:
             try:
                 response_json = response.json()
             except json.decoder.JSONDecodeError:
-                print(f"ERROR Bad request")
-                exit(1)
+                raise ClientError(f"ERROR Bad request")
             if 'errors' in response_json:
-                print(f"ERROR Bad request: \n{response_json['errors'][0]['code']} ")
+                err_str = f"ERROR Bad request: \n{response_json['errors'][0]['code']}"
             else:
                 err_str = f"ERROR Bad request: \n{response.json()} Please contact support@f0cal.com"
             raise ClientError(err_str)

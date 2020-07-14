@@ -1,12 +1,9 @@
 import f0cal
-import json
-import os
 import argparse
-from time import time, sleep
-
-from f0cal.farm.client.utils import query, create_class, DeviceFileParser, InstanceStatusPrinter
+import sys
+from tabulate import tabulate
+from f0cal.farm.client.utils import query, create_class, JsonFileParser, InstanceStatusPrinter, resolve_remote_url
 from f0cal.farm.client.__codegen__.cli import parse_update_string, printer, api_key_required
-from f0cal.farm.client.api_client import DeviceFarmApi
 
 @f0cal.plugin(name='farm_api', sets='config_file')
 def config_file():
@@ -14,6 +11,8 @@ def config_file():
     [api]
     api_url = https://app.f0cal.com/api
     device_file = ${f0cal:prefix}/etc/f0cal/devices.json
+    remotes_file = ${f0cal:prefix}/etc/f0cal/remotes.json
+    images_file = ${f0cal:prefix}/etc/f0cal/images.json
     
     '''
 
@@ -36,23 +35,23 @@ def configure(parser, core,  update_args):
 
 def _args_instance_create(parser):
     parser.add_argument("name", )
-    parser.add_argument("--image", type=lambda name: query("Image", "image", name), required=True,)
-    parser.add_argument("--device-type", type=lambda name: query("DeviceType", "device_type", name),required=True,)
     parser.add_argument("--no-queue", required=False, action="store_true",
                         help="Only create an instance if there is a device available immediately")
     parser.add_argument("--no-block", required=False, action="store_true",
                         help='Create an instance but do not wait for it become ready')
-
+    parser.add_argument("--remote", "-r", type=lambda remote_name: resolve_remote_url(remote_name), required=True)
+    parser.add_argument("--image", type=lambda name: query("Image", "image", name, remote=True), required=True,)
+    parser.add_argument("--device-type", type=lambda name: query("DeviceType", "device_type", name, remote=True),required=True,)
 @f0cal.entrypoint(["farm", "instance", "create"], args=_args_instance_create)
 @printer
 @api_key_required
-def _cli_instance_create(parser, core, name,  no_block=False, wait_time=15, *args, **dargs):
-    device_config = DeviceFileParser(core.config['api']['device_file'])
+def _cli_instance_create(parser, core, name, remote,  no_block=False, wait_time=15, *args, **dargs):
+    device_config = JsonFileParser(core.config['api']['device_file'])
     if name in device_config:
-        print(f'ERROR: You have already name a device {name} please choose a different name')
+        print(f'ERROR: You already have a device named {name} please choose a different name')
         exit(1)
 
-    cls = create_class("Instance", "instance")
+    cls = create_class("Instance", "instance", remote)
     inst = cls.create(**dargs)
     print(f"Requested an instance of type {dargs['device_type'].name}")
     device_config[name] = {'id': inst.id}
@@ -63,25 +62,56 @@ def _cli_instance_create(parser, core, name,  no_block=False, wait_time=15, *arg
     return inst
 
 def args_instance_connect(parser):
-    parser.add_argument( "instance", type=lambda name: query("Instance", "instance", name),)
+    parser.add_argument("--remote", "-r", type=lambda remote_name: resolve_remote_url(remote_name), required=True)
+    # ns, _ = parser.parse_known_args()
+    # remote = ns.remote
+
+    parser.add_argument( "instance", type=lambda name: query("Instance", "instance", name, remote=True),)
     parser.add_argument('connection_args', nargs=argparse.REMAINDER)
 
+
 @f0cal.entrypoint(["farm", "instance", "connect"], args=args_instance_connect)
-def instance_connect(parser, core, instance, connection_args,*args, **kwargs):
+def instance_connect(parser, core, instance, connection_args, remote, *args, **kwargs):
     if '--ssh' in connection_args:
         connection_type = 'ssh'
         connection_args.remove('--ssh')
     else:
         print('Only ssh connection are supported at the moment. Please use --ssh')
         exit(1)
-    connection_args.remove('--')
-    instance.connect(connection_type, connection_args)
-def devices_args(parser):
-    parser.add_argument("name", )
+    if '--' in connection_args:
+        connection_args.remove('--')
+    instance.connect(connection_type, connection_args, remote)
 
-if __name__ == '__main__':
-    from f0cal import __main__
-    import sys
-    import shlex
-    sys.argv = shlex.split('f0cal farm instance create   my_pi   --device-type raspberry-pi/3bp   --image raspbian-lite/10@f0cal/device-farm ')
-    __main__.main()
+def remote_add_args(parser):
+    parser.add_argument("name", help="Your local alias for the remote cluster")
+    parser.add_argument("url", help="The url of that remote cluster")
+
+@f0cal.entrypoint(["farm", "remote", "add"], args=remote_add_args)
+def add_remote(parser, core, name, url):
+    remotes_file = JsonFileParser(core.config['api']['remotes_file'])
+    remotes_file[name] = url
+    remotes_file.write()
+@f0cal.entrypoint(["farm", "remote", "list"])
+def remote_list(parser, core):
+    remotes_file = JsonFileParser(core.config['api']['remotes_file'])
+    print(tabulate(remotes_file.data.items(), headers=["Name", "URL"]))
+
+def image_push_args(parser):
+    parser.add_argument("--remote", "-r", type=lambda remote_name: resolve_remote_url(remote_name), required=True)
+    parser.add_argument("local_image", help='Name of locally cached image')
+@f0cal.entrypoint(["farm", "image", "push"], args=image_push_args)
+def image_push(parser, core, remote, local_image):
+    img_cls = create_class("Image", "image", remote=True)
+    images_file = JsonFileParser(f0cal.CORE.config['api']['images_file'])
+    if local_image not in images_file:
+        print(f'ERROR: Image {local_image} does not exist locally')
+        exit(1)
+    local_image_data = images_file[local_image]
+
+    img = img_cls.create(**local_image_data['data'])
+    img._conan_push()
+    factory_class = create_class('KnownInstanceFactory', 'known_instance_factory', remote=True)
+    for factory in local_image_data['known_instance_factories']:
+        print(factory)
+        inst = factory_class.create(**factory)
+

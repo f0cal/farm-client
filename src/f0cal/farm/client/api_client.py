@@ -1,12 +1,21 @@
-# TODO move this into in a sepereate package
-from encodings.punycode import selective_find
-
 import requests
 import logging
 import wrapt
 from f0cal.farm.client.__codegen__.entities import EntityBase
 
 LOG = logging.getLogger(__name__)
+
+
+class ServerError(Exception):
+    pass
+
+
+class ClientError(Exception):
+    pass
+
+
+class ConnectionError(Exception):
+    pass
 
 
 @wrapt.decorator
@@ -26,20 +35,24 @@ class DeviceFarmApi:
     @staticmethod
     def _handle_error_response(response):
         if response.status_code >= 500:
-            print(
-                f"There was an Server ERROR in the F0cal Device Farm API at {response.request.path_url}. Please contact Please contact support@f0cal.com")
-            LOG.debug(f'Error at url {response.request.path_url}: {response.text}')
-            exit(1)
+            err_str = f"There was an Server ERROR in the F0cal Device Farm API at {response.request.path_url}. Please contact Please contact support@f0cal.com"
+            raise ServerError(err_str)
 
         elif response.status_code == 401:
-            print('ERROR: Unauthorized\nPlease ensure you api key is valid')
-            exit(1)
+            err_str = 'ERROR: Unauthorized\nPlease ensure you api key is valid'
+            raise ClientError(err_str)
+
         elif response.status_code >= 400:
-            if 'errors' in response.json():
-                print(f"ERROR Bad request: \n{response.json()['errors'][0]['code']} ")
+            try:
+                response_json = response.json()
+            except json.decoder.JSONDecodeError:
+                print(f"ERROR Bad request")
+                exit(1)
+            if 'errors' in response_json:
+                print(f"ERROR Bad request: \n{response_json['errors'][0]['code']} ")
             else:
-                print(f"ERROR Bad request: \n{response.json()} Please contact support@f0cal.com")
-            exit(1)
+                err_str = f"ERROR Bad request: \n{response.json()} Please contact support@f0cal.com"
+            raise ClientError(err_str)
 
         else:
             print("Unknown Error from F0cal")
@@ -48,6 +61,11 @@ class DeviceFarmApi:
     def _check_response(self, response):
         if not response.ok:
             self._handle_error_response(response)
+    def _get_base_url(self, remote=None):
+        if remote is None:
+            return f'{self.url}/api'
+        if remote is not None:
+            return f'{self.url}'
 
     def _prep_data(self, data):
         for key, val in data.items():
@@ -67,9 +85,9 @@ class DeviceFarmApi:
         try:
             response = requests.get(url, *args, **kwargs)
         except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout) as e:
-            print(f'ERROR: {e.args[0]}')
-            print("There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com")
-            exit(1)
+            err_str = f"There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com" \
+                      f"\nMore info:\n{e.args[0]}"
+            raise ConnectionError(err_str)
 
         self._check_response(response)
 
@@ -83,9 +101,9 @@ class DeviceFarmApi:
         try:
             response = requests.post(url, json={'data': data}, *args, **kwargs)
         except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout) as e:
-            print(f'ERROR: {e.args[0]}')
-            print("There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com")
-            exit(1)
+            err_str = f"There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com" \
+                      f"\nMore info:\n{e.args[0]}"
+            raise ConnectionError(err_str)
 
         self._check_response(response)
         return response.json()['data']
@@ -99,9 +117,10 @@ class DeviceFarmApi:
         try:
             response = requests.patch(url, json={'data': data}, *args, **kwargs)
         except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout) as e:
-            print(f'ERROR: {e.args[0]}')
-            print("There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com")
-            exit(1)
+            LOG.error(f'ERROR: {e.args[0]}')
+            err_str = f"There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com" \
+                      f"\nMore info:\n{e.args[0]}"
+            raise ConnectionError(err_str)
 
         self._check_response(response)
         return response.json()['data']
@@ -114,34 +133,34 @@ class DeviceFarmApi:
         try:
             response = requests.delete(url, *args, **kwargs)
         except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout) as e:
-            print(f'ERROR: {e.args[0]}')
-            print("There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com")
-            exit(1)
+            err_str = f"There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com" \
+                      f"\nMore info:\n{e.args[0]}"
+            raise ConnectionError(err_str)
         self._check_response(response)
 
         return response.json()['data']
 
-    def create(self, noun, data):
+    def create(self, noun, data, remote=None):
         url = f'{self.url}/{noun}/'
         return self._post(url, data)
 
-    def update(self, noun, _id,  data):
+    def update(self, noun, _id,  data, remote=None):
         url = f'{self.url}/{noun}/{_id}'
         return self._patch(url, data)
 
-    def delete(self, noun, _id):
+    def delete(self, noun, _id, remote=None):
         url = f'{self.url}/{noun}/{_id}'
         return self._delete(url)
 
-    def list(self, noun):
+    def list(self, noun, remote=None):
         url = f'{self.url}/{noun}/'
         return self._get(url)
 
-    def retrieve(self, noun, _id):
+    def retrieve(self, noun, _id, remote=None):
         url = f'{self.url}/{noun}/{_id}'
         return self._get(url)
 
-    def action(self, noun, _id, verb, data):
+    def action(self, noun, _id, verb, data, remote=None):
         url = f'{self.url}/{noun}/{_id}/{verb}/'
         return self._post(url, data)
 

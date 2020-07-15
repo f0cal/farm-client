@@ -51,7 +51,7 @@ def {{ ARGSETTER_NAME(noun, verb) }}(parser):
     pass 
   {% endif %}
   {% if remote %}
-  parser.add_argument( "--remote", "-r", type=lambda remote_name: resolve_remote_url(remote_name),required=True,)
+  parser.add_argument( "--remote", "-r", required=True,)
   {% endif %}
 
   {% for type_data in accepts %}
@@ -76,14 +76,13 @@ def {{ ENTRYPOINT_NAME(noun, verb) }}(parser, core, *args, **dargs):
   client = DeviceFarmApi(api_key=core.config['api'].get('api_key'), api_url=core.config['api']['api_url'])
   {% if instance %}
   {% if remote %}
-  remote = dargs.pop("remote")
   {% endif %}
   inst = dargs.pop("{{ noun }}")
   return inst.{{ verb }}(*args, **dargs)
   {% else %}
   {% if remote %}
-  remote = dargs.pop("remote")
-  cls = create_class("{{ CLASS_NAME(noun) }}", "{{ noun }}", remote)
+  remote = dargs.get("remote")
+  cls = create_class("{{ CLASS_NAME(noun) }}", "{{ noun }}", True)
   {% else %}
   cls = create_class("{{ CLASS_NAME(noun) }}", "{{ noun }}")
   {% endif %}

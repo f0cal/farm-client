@@ -4,6 +4,7 @@ import sys
 from tabulate import tabulate
 from f0cal.farm.client.utils import query, create_class, JsonFileParser, InstanceStatusPrinter, resolve_remote_url
 from f0cal.farm.client.__codegen__.cli import parse_update_string, printer, api_key_required
+from  f0cal.farm.client.conan_client import ConanClient
 
 @f0cal.plugin(name='farm_api', sets='config_file')
 def config_file():
@@ -88,6 +89,9 @@ def remote_add_args(parser):
 
 @f0cal.entrypoint(["farm", "remote", "add"], args=remote_add_args)
 def add_remote(parser, core, name, url):
+    conan_client = ConanClient()
+    conan_client.add_remote(name, url)
+
     remotes_file = JsonFileParser(core.config['api']['remotes_file'])
     remotes_file[name] = url
     remotes_file.write()
@@ -97,10 +101,13 @@ def remote_list(parser, core):
     print(tabulate(remotes_file.data.items(), headers=["Name", "URL"]))
 
 def image_push_args(parser):
-    parser.add_argument("--remote", "-r", type=lambda remote_name: resolve_remote_url(remote_name), required=True)
+    parser.add_argument("--remote", "-r", required=True)
     parser.add_argument("local_image", help='Name of locally cached image')
 @f0cal.entrypoint(["farm", "image", "push"], args=image_push_args)
 def image_push(parser, core, remote, local_image):
+
+    # TODO GENREALLY NEED SOME ERROR HANDELING HERE.
+    # TODO MOVE LOGINC INTO IMAGE ENTITY
     img_cls = create_class("Image", "image", remote=True)
     images_file = JsonFileParser(f0cal.CORE.config['api']['images_file'])
     if local_image not in images_file:
@@ -109,7 +116,7 @@ def image_push(parser, core, remote, local_image):
     local_image_data = images_file[local_image]
 
     img = img_cls.create(**local_image_data['data'])
-    img._conan_push()
+    img._conan_push(remote)
     factory_class = create_class('KnownInstanceFactory', 'known_instance_factory', remote=True)
     for factory in local_image_data['known_instance_factories']:
         print(factory)

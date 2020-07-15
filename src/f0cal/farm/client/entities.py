@@ -1,15 +1,11 @@
-from builtins import super
 
 from f0cal.farm.client.__codegen__.entities import *
 from f0cal.farm.client.api_client import DeviceFarmApi
+from f0cal.farm.client.conan_client import ConanClient
 import argparse
 import f0cal
 import urllib
 import os
-import shlex
-import subprocess
-import yaml
-from time import sleep, time
 import logging
 
 LOG = logging.getLogger(__name__)
@@ -74,17 +70,16 @@ class Instance(Instance):
 
 
 class Image(Image):
-    def _conan_pull(self):
-        print('!' * 80)
-        print('CONAN PULL IS NOT YET IMPLEMENTED PLEASE MANUALLY PULL THE IMAGE ')
-        print('!' * 80)
+    def _conan_pull(self, remote):
+        conan_client = ConanClient()
+        conan_client.image_pull(self.name, remote)
 
-    def _conan_push(self):
-        print('!' * 80)
-        print('CONAN PUSH IS NOT YET IMPLEMENTED PLEASE MANUALLY PUSH THE IMAGE ')
-        print('!' * 80)
+    def _conan_push(self, remote):
+        conan_client = ConanClient()
+        conan_client.image_push(self.name, remote)
 
-    def serilaze(self):
+
+    def serialize(self):
         # TODO MOVE JSONFILE PARSER TO AVOIND CIRCULAR IMPORT AND IMPORT UP TOP
         from f0cal.farm.client.utils import JsonFileParser
         images_file = JsonFileParser(f0cal.CORE.config['api']['images_file'])
@@ -98,7 +93,7 @@ class Image(Image):
             'known_instance_factories': self.known_instance_factories}
         images_file.write()
 
-    def pull(self):
-        self._conan_pull()
-        self.serilaze()
+    def pull(self, remote):
+        self._conan_pull(remote)
+        self.serialize()
         return self

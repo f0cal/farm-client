@@ -105,4 +105,5 @@ class SshKey(SshKey):
         with open(save_file, 'a') as f:
             inst = super().create(**data)
             f.write(inst.private_key)
+        os.chmod(save_file, 0o600)
         return inst

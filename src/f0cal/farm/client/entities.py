@@ -22,10 +22,10 @@ class Instance(Instance):
             exit(1)
         return _fn(connection_args, remote)
 
-    def destroy(self):
+    def destroy(self, *args, **kwargs):
         return self.stop()
 
-    def stop(self):
+    def stop(self, *args, **kwargs):
         print('Stopping instance')
         return self._do_verb('stop', {})
 

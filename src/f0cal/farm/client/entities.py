@@ -73,16 +73,11 @@ class Image(Image):
     def _conan_pull(self, remote):
         conan_client = ConanClient()
         conan_client.image_pull(self.name, remote)
-        # print('!' * 80)
-        # print('CONAN PULL IS NOT YET IMPLEMENTED PLEASE MANUALLY PULL THE IMAGE ')
-        # print('!' * 80)
 
     def _conan_push(self, remote):
         conan_client = ConanClient()
         conan_client.image_push(self.name, remote)
-        # print('!' * 80)
-        # print('CONAN PUSH IS NOT YET IMPLEMENTED PLEASE MANUALLY PUSH THE IMAGE ')
-        # print('!' * 80)
+
 
     def serialize(self):
         # TODO MOVE JSONFILE PARSER TO AVOIND CIRCULAR IMPORT AND IMPORT UP TOP

@@ -97,3 +97,12 @@ class Image(Image):
         self._conan_pull(remote)
         self.serialize()
         return self
+
+class SshKey(SshKey):
+    @classmethod
+    def create(cls, **data):
+        save_file = data.pop('file')
+        with open(save_file, 'a') as f:
+            inst = super().create(**data)
+            f.write(inst.private_key)
+        return inst

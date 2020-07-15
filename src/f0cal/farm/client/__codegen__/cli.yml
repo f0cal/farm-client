@@ -132,6 +132,14 @@ entrypoints:
       - name: query_string
         positional: true
         type: query_string
+  - noun: ssh_key
+    verb:  create
+    args:
+      - name: name
+        positional: true
+      - name: file
+        required: true
+
 
   - noun: cluster
     verb: query

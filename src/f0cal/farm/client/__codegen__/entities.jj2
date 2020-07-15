@@ -81,6 +81,9 @@ class EntityBase:
         return {}
 
     def _do_verb(self, verb, data):
+        # TODO THIS SHOULD GET REMOVED ELSEWHERE PERHAPS
+        if 'remote' in data:
+           data.pop('remote')
         response = self.CLIENT.action(self.NOUN, self.id, verb, data)
         return self._from_response(response)
 

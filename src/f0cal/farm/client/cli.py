@@ -66,6 +66,15 @@ def args_instance_connect(parser):
     parser.add_argument( "instance", type=lambda name: query("Instance", "instance", name),)
     parser.add_argument('connection_args', nargs=argparse.REMAINDER)
 
+def args_instance_send(parser):
+    parser.add_argument( "instance", type=lambda name: query("Instance", "instance", name),)
+    parser.add_argument('send_args', nargs=argparse.REMAINDER)
+
+
+@f0cal.entrypoint(["farm", "instance", "send"], args=args_instance_send)
+def instance_send(parser, core, instance, send_args,*args, **kwargs):
+    instance.send_scp(send_args)
+
 @f0cal.entrypoint(["farm", "instance", "connect"], args=args_instance_connect)
 def instance_connect(parser, core, instance, connection_args,*args, **kwargs):
     if '--ssh' in connection_args:

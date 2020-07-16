@@ -24,6 +24,7 @@ class Instance(Instance):
         if not _fn:
             print(f'{connection_type} connections not supported')
             exit(1)
+        print((connection_args))
         return _fn(connection_args)
 
     def destroy(self):
@@ -39,14 +40,35 @@ class Instance(Instance):
         print('*'*80)
         print('Starting an SSH session with your instance. Press CTRL+d to exit')
         print('*' * 80)
+        print(connection_args)
         os.execvp(ssh_bin, connection_args)
+
+    def send_scp(self, send_args):
+        scp_bin = '/usr/bin/scp'
+        send_args = self._format_send_args(send_args)
+        print('*'*80)
+        print('Sending your file(s)')
+        print('*' * 80)
+        print(send_args)
+        os.execvp(scp_bin, send_args)
+
+    def _format_send_args(self, send_args):
+        user = self._get_user()
+        ip, port = self._get_url()
+        if port:
+            send_args = ['-P', f'{port}'] + send_args
+        send_args = send_args + [f'{user}@{ip}:~/']
+        print(send_args)
+        return send_args
+
     def _format_ssh_args(self, connection_args):
         user = self._get_user()
         ip , port = self._get_url()
         if port:
-            connection_args =   ['-p', f'{port}'] + connection_args
+            connection_args = ['-p', f'{port}'] + connection_args
         connection_args = ['ssh']+ [f'{user}@{ip}'] + connection_args
         return connection_args
+
     def _get_user(self):
         try:
             image_id = self.image_id
@@ -65,6 +87,7 @@ class Instance(Instance):
         if ip is None:
             print('This instance does not have an ip configured yet. Are you sure its ready?')
         parts = urllib.parse.urlparse(ip)
+        print(str(parts.port))
         return parts.hostname, parts.port
 
 

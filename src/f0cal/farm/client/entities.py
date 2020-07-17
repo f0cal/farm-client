@@ -66,7 +66,17 @@ class Instance(Instance):
         return parts.hostname, parts.port
 
     def save(self, *args, **kwargs):
-        return self._do_verb('save', kwargs)
+        no_block = kwargs.pop('no_block')
+        # TODO THIS IS A BIT UGLY SAVE SHOULD ACTAULLY BE A MODE OF CREATION ON AN IMAGE NO VERB ON INSTANCWE
+        image_data = self._do_verb('save', kwargs)
+        cls = type( "Image", (Image,), {"CLIENT": self.CLIENT, "NOUN": 'image'})
+        image = cls.from_id(image_data.id)
+        if not no_block:
+            # Ugly circular import
+            from f0cal.farm.client.utils import ImageStatusPrinter
+            printer = ImageStatusPrinter(image)
+            printer.block()
+        return image
 
 
 class Image(Image):
@@ -102,7 +112,7 @@ class SshKey(SshKey):
     @classmethod
     def create(cls, **data):
         save_file = data.pop('file')
-        with open(save_file, 'a') as f:
+        with open(save_file, 'w') as f:
             inst = super().create(**data)
             f.write(inst.private_key)
         os.chmod(save_file, 0o600)

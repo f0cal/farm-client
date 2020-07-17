@@ -47,6 +47,7 @@ def _args_instance_create(parser):
 @printer
 @api_key_required
 def _cli_instance_create(parser, core, name, remote,  no_block=False, wait_time=15, *args, **dargs):
+    # TODO MOVE CODE TO INSTANCE ENTITY
     device_config = JsonFileParser(core.config['api']['device_file'])
     if name in device_config:
         print(f'ERROR: You already have a device named {name} please choose a different name')

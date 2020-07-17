@@ -126,6 +126,9 @@ entrypoints:
       - name: version
         positional: false
         required: true
+      - name: no-block
+        kwargs:
+          action: "'store_true'"
   - noun: ssh_key
     verb:  query
     args:

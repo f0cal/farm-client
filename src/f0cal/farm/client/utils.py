@@ -198,3 +198,28 @@ class InstanceStatusPrinter:
             exit(1)
         if self.instance.status == 'ready':
             print('Your instance is ready to be used')
+
+# TODO REFACTOR TO PULL OUT BASE CLASS
+class ImageStatusPrinter:
+    def __init__(self, image):
+        self.image = image
+    def block(self):
+        self._wait_saving()
+    def _wait_saving(self):
+        with MoonSpinner('Saving your device image: ') as bar:
+            elapsed_time = 0
+
+            while self.image.status == 'saving':
+                bar.next()
+                sleep(.25)
+                elapsed_time += .25
+                if elapsed_time % 3 == 0:
+                    self.image.refresh()
+            bar.finish()
+        if self.image.status == 'ready':
+            print('Your image has been saved')
+            return
+        if 'error' in self.image.status:
+            print("There was an error saving you instance please contact F0cal")
+            exit(1)
+

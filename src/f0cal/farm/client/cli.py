@@ -66,14 +66,41 @@ def args_instance_connect(parser):
     parser.add_argument( "instance", type=lambda name: query("Instance", "instance", name),)
     parser.add_argument('connection_args', nargs=argparse.REMAINDER)
 
-def args_instance_send(parser):
+def args_instance_scp(parser):
     parser.add_argument( "instance", type=lambda name: query("Instance", "instance", name),)
-    parser.add_argument('send_args', nargs=argparse.REMAINDER)
+    parser.add_argument("source")
+    parser.add_argument('scp_args', nargs=argparse.REMAINDER)
+
+def args_instance_get(parser):
+    parser.add_argument( "instance", type=lambda name: query("Instance", "instance", name),)
+    parser.add_argument('get_args', nargs=argparse.REMAINDER)
 
 
-@f0cal.entrypoint(["farm", "instance", "send"], args=args_instance_send)
-def instance_send(parser, core, instance, send_args,*args, **kwargs):
-    instance.send_scp(send_args)
+@f0cal.entrypoint(["farm", "instance", "send"], args=args_instance_scp)
+def instance_send(parser, core, instance, source, scp_args, *args, **kwargs):
+    if '-destination' in scp_args:
+        i = scp_args.index('-destination')
+        if len(scp_args) == i+1:
+            print('Destination directory must follow -destination flag, or remove the -destination flag to scp into the home directory.')
+            exit(1)
+        destination = scp_args.pop(i + 1)
+        del scp_args[i]
+    else:
+        destination = "~/"
+    instance.send_scp(source, destination, scp_args)
+
+@f0cal.entrypoint(["farm", "instance", "get"], args=args_instance_scp)
+def instance_get(parser, core, instance, source, scp_args, *args, **kwargs):
+    if '-destination' in scp_args:
+        i= scp_args.index('-destination')
+        if len(scp_args) == i+1:
+            print('Destination directory must follow -destination flag, or remove the -destination flag to scp into the current directory.')
+            exit(1)
+        destination = scp_args.pop(i + 1)
+        del scp_args[i]
+    else:
+        destination = "."
+    instance.get_scp(source, destination, scp_args)
 
 @f0cal.entrypoint(["farm", "instance", "connect"], args=args_instance_connect)
 def instance_connect(parser, core, instance, connection_args,*args, **kwargs):

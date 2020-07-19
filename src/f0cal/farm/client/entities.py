@@ -2,7 +2,7 @@ from builtins import super
 
 from f0cal.farm.client.__codegen__.entities import *
 from f0cal.farm.client.api_client import DeviceFarmApi
-
+import subprocess
 import f0cal
 import urllib
 import os
@@ -40,26 +40,39 @@ class Instance(Instance):
         print('*'*80)
         print('Starting an SSH session with your instance. Press CTRL+d to exit')
         print('*' * 80)
-        print(connection_args)
         os.execvp(ssh_bin, connection_args)
 
-    def send_scp(self, send_args):
+    def send_scp(self, source, destination, send_args):
         scp_bin = '/usr/bin/scp'
-        send_args = self._format_send_args(send_args)
+        send_args = self._format_send_args(source, destination, send_args)
         print('*'*80)
         print('Sending your file(s)')
         print('*' * 80)
-        print(send_args)
-        os.execvp(scp_bin, send_args)
+        subprocess.call([scp_bin] + send_args)
 
-    def _format_send_args(self, send_args):
+    def get_scp(self, source, destination, get_args):
+        scp_bin = '/usr/bin/scp'
+        get_args = self._format_get_args(source, destination, get_args)
+        print('*' * 80)
+        print('Getting your file(s)')
+        print('*' * 80)
+        subprocess.call([scp_bin] + get_args)
+
+    def _format_send_args(self, source, destination, send_args):
         user = self._get_user()
         ip, port = self._get_url()
         if port:
             send_args = ['-P', f'{port}'] + send_args
-        send_args = send_args + [f'{user}@{ip}:~/']
-        print(send_args)
+        send_args = send_args + [source] + [f'{user}@{ip}:{destination}']
         return send_args
+
+    def _format_get_args(self, source, destination, get_args):
+        user = self._get_user()
+        ip, port = self._get_url()
+        if port:
+            get_args = ['-P', f'{port}'] + get_args
+        get_args = get_args + [f'{user}@{ip}:{source}'] + [destination]
+        return get_args
 
     def _format_ssh_args(self, connection_args):
         user = self._get_user()

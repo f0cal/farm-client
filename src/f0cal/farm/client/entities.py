@@ -100,7 +100,6 @@ class Instance(Instance):
         if ip is None:
             print('This instance does not have an ip configured yet. Are you sure its ready?')
         parts = urllib.parse.urlparse(ip)
-        print(str(parts.port))
         return parts.hostname, parts.port
 
 

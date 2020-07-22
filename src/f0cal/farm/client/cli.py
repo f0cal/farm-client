@@ -71,30 +71,25 @@ def args_instance_scp(parser):
     parser.add_argument("source")
     parser.add_argument('scp_args', nargs=argparse.REMAINDER)
 
-def args_instance_get(parser):
-    parser.add_argument( "instance", type=lambda name: query("Instance", "instance", name),)
-    parser.add_argument('get_args', nargs=argparse.REMAINDER)
-
-
-@f0cal.entrypoint(["farm", "instance", "send"], args=args_instance_scp)
-def instance_send(parser, core, instance, source, scp_args, *args, **kwargs):
+@f0cal.entrypoint(["farm", "instance", "put"], args=args_instance_scp)
+def instance_put(parser, core, instance, source, scp_args, *args, **kwargs):
     if '-destination' in scp_args:
-        i = scp_args.index('-destination')
-        if len(scp_args) == i+1:
-            print('Destination directory must follow -destination flag, or remove the -destination flag to scp into the home directory.')
+        i = scp_args.index('--destination')
+        if len(scp_args) == i + 1:
+            print('Destination directory must follow --destination flag, or remove the -destination flag to scp into the home directory.')
             exit(1)
         destination = scp_args.pop(i + 1)
         del scp_args[i]
     else:
-        destination = "~/"
-    instance.send_scp(source, destination, scp_args)
+        destination = '~/'
+    instance.put_scp(source, destination, scp_args)
 
 @f0cal.entrypoint(["farm", "instance", "get"], args=args_instance_scp)
 def instance_get(parser, core, instance, source, scp_args, *args, **kwargs):
     if '-destination' in scp_args:
-        i= scp_args.index('-destination')
+        i= scp_args.index('--destination')
         if len(scp_args) == i+1:
-            print('Destination directory must follow -destination flag, or remove the -destination flag to scp into the current directory.')
+            print('Destination directory must follow --destination flag, or remove the -destination flag to scp into the current directory.')
             exit(1)
         destination = scp_args.pop(i + 1)
         del scp_args[i]

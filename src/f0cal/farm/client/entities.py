@@ -24,7 +24,6 @@ class Instance(Instance):
         if not _fn:
             print(f'{connection_type} connections not supported')
             exit(1)
-        print((connection_args))
         return _fn(connection_args)
 
     def destroy(self):
@@ -42,13 +41,13 @@ class Instance(Instance):
         print('*' * 80)
         os.execvp(ssh_bin, connection_args)
 
-    def send_scp(self, source, destination, send_args):
+    def put_scp(self, source, destination, put_args):
         scp_bin = '/usr/bin/scp'
-        send_args = self._format_send_args(source, destination, send_args)
-        print('*'*80)
+        put_args = self._format_put_args(source, destination, put_args)
+        print('*' * 80)
         print('Sending your file(s)')
         print('*' * 80)
-        subprocess.call([scp_bin] + send_args)
+        subprocess.call([scp_bin] + put_args)
 
     def get_scp(self, source, destination, get_args):
         scp_bin = '/usr/bin/scp'
@@ -58,13 +57,13 @@ class Instance(Instance):
         print('*' * 80)
         subprocess.call([scp_bin] + get_args)
 
-    def _format_send_args(self, source, destination, send_args):
+    def _format_put_args(self, source, destination, put_args):
         user = self._get_user()
         ip, port = self._get_url()
         if port:
-            send_args = ['-P', f'{port}'] + send_args
-        send_args = send_args + [source] + [f'{user}@{ip}:{destination}']
-        return send_args
+            put_args = ['-P', f'{port}'] + put_args
+        put_args = put_args + [source] + [f'{user}@{ip}:{destination}']
+        return put_args
 
     def _format_get_args(self, source, destination, get_args):
         user = self._get_user()

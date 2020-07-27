@@ -8,14 +8,16 @@ from f0cal.farm.client.utils import query, create_class, DeviceFileParser, Insta
 from f0cal.farm.client.__codegen__.cli import parse_update_string, printer, api_key_required
 from f0cal.farm.client.api_client import DeviceFarmApi
 
+
 @f0cal.plugin(name='farm_api', sets='config_file')
 def config_file():
     return '''
     [api]
     api_url = https://app.f0cal.com/api
     device_file = ${f0cal:prefix}/etc/f0cal/devices.json
-    
+
     '''
+
 
 def configure_args(parser):
     help_string = 'Should be in the form of "key=value" where key is one of {"api_key",  "api_url"}'
@@ -23,7 +25,7 @@ def configure_args(parser):
 
 
 @f0cal.entrypoint(['farm', 'config', 'update'], args=configure_args)
-def configure(parser, core,  update_args):
+def configure(parser, core, update_args):
     if 'api_key' in update_args:
         core.config['api']['api_key'] = update_args['api_key']
         print("Updated API key")
@@ -31,22 +33,23 @@ def configure(parser, core,  update_args):
         core.config['api']['api_url'] = update_args['api_url']
         print("Updated API url")
 
-
     core.config.write_file(core.config_path)
+
 
 def _args_instance_create(parser):
     parser.add_argument("name", )
-    parser.add_argument("--image", type=lambda name: query("Image", "image", name), required=True,)
-    parser.add_argument("--device-type", type=lambda name: query("DeviceType", "device_type", name),required=True,)
+    parser.add_argument("--image", type=lambda name: query("Image", "image", name), required=True, )
+    parser.add_argument("--device-type", type=lambda name: query("DeviceType", "device_type", name), required=True, )
     parser.add_argument("--no-queue", required=False, action="store_true",
                         help="Only create an instance if there is a device available immediately")
     parser.add_argument("--no-block", required=False, action="store_true",
                         help='Create an instance but do not wait for it become ready')
 
+
 @f0cal.entrypoint(["farm", "instance", "create"], args=_args_instance_create)
 @printer
 @api_key_required
-def _cli_instance_create(parser, core, name,  no_block=False, wait_time=15, *args, **dargs):
+def _cli_instance_create(parser, core, name, no_block=False, wait_time=15, *args, **dargs):
     device_config = DeviceFileParser(core.config['api']['device_file'])
     if name in device_config:
         print(f'ERROR: You already have a device named {name} please choose a different name')
@@ -62,21 +65,25 @@ def _cli_instance_create(parser, core, name,  no_block=False, wait_time=15, *arg
         inst_status.block()
     return inst
 
+
 def args_instance_connect(parser):
-    parser.add_argument( "instance", type=lambda name: query("Instance", "instance", name),)
+    parser.add_argument("instance", type=lambda name: query("Instance", "instance", name), )
     parser.add_argument('connection_args', nargs=argparse.REMAINDER)
 
+
 def args_instance_scp(parser):
-    parser.add_argument( "instance", type=lambda name: query("Instance", "instance", name),)
+    parser.add_argument("instance", type=lambda name: query("Instance", "instance", name), )
     parser.add_argument("source")
     parser.add_argument('scp_args', nargs=argparse.REMAINDER)
 
+
 @f0cal.entrypoint(["farm", "instance", "put"], args=args_instance_scp)
 def instance_put(parser, core, instance, source, scp_args, *args, **kwargs):
-    if '-destination' in scp_args:
+    if '--destination' in scp_args:
         i = scp_args.index('--destination')
         if len(scp_args) == i + 1:
-            print('Destination directory must follow --destination flag, or remove the -destination flag to scp into the home directory.')
+            print(
+                'Destination directory must follow --destination flag, or remove the --destination flag to scp into the home directory.')
             exit(1)
         destination = scp_args.pop(i + 1)
         del scp_args[i]
@@ -84,21 +91,24 @@ def instance_put(parser, core, instance, source, scp_args, *args, **kwargs):
         destination = '~/'
     instance.put_scp(source, destination, scp_args)
 
+
 @f0cal.entrypoint(["farm", "instance", "get"], args=args_instance_scp)
 def instance_get(parser, core, instance, source, scp_args, *args, **kwargs):
-    if '-destination' in scp_args:
-        i= scp_args.index('--destination')
-        if len(scp_args) == i+1:
-            print('Destination directory must follow --destination flag, or remove the -destination flag to scp into the current directory.')
+    if '--destination' in scp_args:
+        i = scp_args.index('--destination')
+        if len(scp_args) == i + 1:
+            print(
+                'Destination directory must follow --destination flag, or remove the --destination flag to scp into the current directory.')
             exit(1)
         destination = scp_args.pop(i + 1)
         del scp_args[i]
     else:
-        destination = "."
+        destination = '.'
     instance.get_scp(source, destination, scp_args)
 
+
 @f0cal.entrypoint(["farm", "instance", "connect"], args=args_instance_connect)
-def instance_connect(parser, core, instance, connection_args,*args, **kwargs):
+def instance_connect(parser, core, instance, connection_args, *args, **kwargs):
     if '--ssh' in connection_args:
         connection_type = 'ssh'
         connection_args.remove('--ssh')
@@ -108,12 +118,17 @@ def instance_connect(parser, core, instance, connection_args,*args, **kwargs):
     if '--' in connection_args:
         connection_args.remove('--')
     instance.connect(connection_type, connection_args)
+
+
 def devices_args(parser):
     parser.add_argument("name", )
+
 
 if __name__ == '__main__':
     from f0cal import __main__
     import sys
     import shlex
-    sys.argv = shlex.split('f0cal farm instance create   my_pi   --device-type raspberry-pi/3bp   --image raspbian-lite/10@f0cal/device-farm ')
+
+    sys.argv = shlex.split(
+        'f0cal farm instance create   my_pi   --device-type raspberry-pi/3bp   --image raspbian-lite/10@f0cal/device-farm ')
     __main__.main()

@@ -45,7 +45,7 @@ class Instance(Instance):
         scp_bin = '/usr/bin/scp'
         connection_args = self._format_scp_args(connection_args, instance_name)
         print('*' * 80)
-        print(f'copying your file(s) to/from instance {instance_name}')
+        print(f'Copying your file(s) to/from instance {instance_name}')
         print('*' * 80)
         subprocess.call([scp_bin] + connection_args)
 

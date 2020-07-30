@@ -80,7 +80,7 @@ def query(class_name, noun, ref, remote=None):
                 device_config = JsonFileParser(f0cal.CORE.config['api']['device_file'])
                 if ref not in device_config:
                     print(
-                        'Name instance name not found. If you created in a different env try querying '
+                        'Name {ref} not found. If you created in a different env try querying '
                         'all instances: \n f0cal farm instance query and then referencing it via id \n :<id> ')
                     exit(1)
                 return cls.from_id(device_config[ref]['id'])

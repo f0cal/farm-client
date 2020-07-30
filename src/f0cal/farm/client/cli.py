@@ -67,57 +67,25 @@ def _cli_instance_create(parser, core, name, no_block=False, wait_time=15, *args
 
 
 def args_instance_connect(parser):
-    parser.add_argument("instance", type=lambda name: query("Instance", "instance", name), )
+    parser.add_argument("instance_name")
     parser.add_argument('connection_args', nargs=argparse.REMAINDER)
 
 
-def args_instance_scp(parser):
-    parser.add_argument("instance", type=lambda name: query("Instance", "instance", name), )
-    parser.add_argument("source")
-    parser.add_argument('scp_args', nargs=argparse.REMAINDER)
-
-
-@f0cal.entrypoint(["farm", "instance", "put"], args=args_instance_scp)
-def instance_put(parser, core, instance, source, scp_args, *args, **kwargs):
-    if '--destination' in scp_args:
-        i = scp_args.index('--destination')
-        if len(scp_args) == i + 1:
-            print(
-                'Destination directory must follow --destination flag, or remove the --destination flag to scp into the home directory.')
-            exit(1)
-        destination = scp_args.pop(i + 1)
-        del scp_args[i]
-    else:
-        destination = '~/'
-    instance.put_scp(source, destination, scp_args)
-
-
-@f0cal.entrypoint(["farm", "instance", "get"], args=args_instance_scp)
-def instance_get(parser, core, instance, source, scp_args, *args, **kwargs):
-    if '--destination' in scp_args:
-        i = scp_args.index('--destination')
-        if len(scp_args) == i + 1:
-            print(
-                'Destination directory must follow --destination flag, or remove the --destination flag to scp into the current directory.')
-            exit(1)
-        destination = scp_args.pop(i + 1)
-        del scp_args[i]
-    else:
-        destination = '.'
-    instance.get_scp(source, destination, scp_args)
-
-
 @f0cal.entrypoint(["farm", "instance", "connect"], args=args_instance_connect)
-def instance_connect(parser, core, instance, connection_args, *args, **kwargs):
+def instance_connect(parser, core, instance_name, connection_args, *args, **kwargs):
+    instance = query("Instance", "instance", instance_name)
     if '--ssh' in connection_args:
         connection_type = 'ssh'
         connection_args.remove('--ssh')
+    elif '--scp' in connection_args:
+        connection_type = 'scp'
+        connection_args.remove('--scp')
     else:
-        print('Only ssh connection are supported at the moment. Please use --ssh')
+        print('Only ssh or scp connections are supported at the moment. Please use --ssh')
         exit(1)
     if '--' in connection_args:
         connection_args.remove('--')
-    instance.connect(connection_type, connection_args)
+    instance.connect(connection_type, connection_args, instance_name)
 
 
 def devices_args(parser):

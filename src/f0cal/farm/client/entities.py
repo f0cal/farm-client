@@ -16,7 +16,7 @@ LOG = logging.getLogger(__name__)
 
 
 class Instance(Instance):
-    def connect(self, connection_type, connection_args):
+    def connect(self, connection_type, connection_args, instance_name):
         if not self.status == 'ready':
             print('The instance is not ready yet')
             exit(1)
@@ -24,7 +24,7 @@ class Instance(Instance):
         if not _fn:
             print(f'{connection_type} connections not supported')
             exit(1)
-        return _fn(connection_args)
+        return _fn(connection_args, instance_name)
 
     def destroy(self):
         return self.stop()
@@ -33,21 +33,21 @@ class Instance(Instance):
         print('Stopping instance')
         return self._do_verb('stop', {})
 
-    def _connect_ssh(self, connection_args):
+    def _connect_ssh(self, connection_args, instance_name):
         ssh_bin = '/usr/bin/ssh'
         connection_args = self._format_ssh_args(connection_args)
         print('*'*80)
-        print('Starting an SSH session with your instance. Press CTRL+d to exit')
+        print(f'Starting an SSH session with instance {instance_name}. Press CTRL+d to exit')
         print('*' * 80)
         os.execvp(ssh_bin, connection_args)
 
-    def put_scp(self, source, destination, put_args):
+    def _connect_scp(self, connection_args, instance_name):
         scp_bin = '/usr/bin/scp'
-        put_args = self._format_put_args(source, destination, put_args)
+        connection_args = self._format_scp_args(connection_args, instance_name)
         print('*' * 80)
-        print('Sending your file(s)')
+        print(f'copying your file(s) to/from instance {instance_name}')
         print('*' * 80)
-        subprocess.call([scp_bin] + put_args)
+        subprocess.call([scp_bin] + connection_args)
 
     def get_scp(self, source, destination, get_args):
         scp_bin = '/usr/bin/scp'
@@ -57,21 +57,16 @@ class Instance(Instance):
         print('*' * 80)
         subprocess.call([scp_bin] + get_args)
 
-    def _format_put_args(self, source, destination, put_args):
+    def _format_scp_args(self, connection_args, instance_name):
         user = self._get_user()
         ip, port = self._get_url()
         if port:
-            put_args = ['-P', f'{port}'] + put_args
-        put_args = put_args + [source] + [f'{user}@{ip}:{destination}']
-        return put_args
-
-    def _format_get_args(self, source, destination, get_args):
-        user = self._get_user()
-        ip, port = self._get_url()
-        if port:
-            get_args = ['-P', f'{port}'] + get_args
-        get_args = get_args + [f'{user}@{ip}:{source}'] + [destination]
-        return get_args
+            connection_args = ['-P', f'{port}'] + connection_args
+        if connection_args[-1].startswith(f'{instance_name}:'):
+            connection_args[-1]= f'{user}@{ip}' + connection_args[-1][len(instance_name):]
+        elif connection_args[-2].startswith(f'{instance_name}:'):
+            connection_args[-2]= f'{user}@{ip}' + connection_args[-2][len(instance_name):]
+        return connection_args
 
     def _format_ssh_args(self, connection_args):
         user = self._get_user()

@@ -45,7 +45,7 @@ class Instance(Instance):
         scp_bin = '/usr/bin/scp'
         connection_args = self._format_scp_args(connection_args, instance_name)
         print('*' * 80)
-        print(f'copying your file(s) to/from instance {instance_name}')
+        print(f'Copying your file(s) to/from instance {instance_name}')
         print('*' * 80)
         subprocess.call([scp_bin] + connection_args)
 
@@ -62,10 +62,8 @@ class Instance(Instance):
         ip, port = self._get_url()
         if port:
             connection_args = ['-P', f'{port}'] + connection_args
-        if connection_args[-1].startswith(f'{instance_name}:'):
-            connection_args[-1]= f'{user}@{ip}' + connection_args[-1][len(instance_name):]
-        elif connection_args[-2].startswith(f'{instance_name}:'):
-            connection_args[-2]= f'{user}@{ip}' + connection_args[-2][len(instance_name):]
+        connection_args = [f'{user}@{ip}' + arg[len(instance_name):] if arg.startswith(f'{instance_name}:')
+                           else arg for arg in connection_args]
         return connection_args
 
     def _format_ssh_args(self, connection_args):

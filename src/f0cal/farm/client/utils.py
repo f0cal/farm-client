@@ -136,9 +136,15 @@ def printer(wrapped, instance, args, kwargs):
         exit(1)
     if isinstance(out, list):
         for x in out:
-            print({k: v for k, v in x.__dict__.items() if not k.startswith("_")})
+            if hasattr(x, 'printable_json'):
+                print(x.printable_json)
+            else:
+                print({k: v for k, v in x.__dict__.items() if not k.startswith("_")})
     else:
-        print({k: v for k, v in out.__dict__.items() if not k.startswith("_")})
+        if hasattr(out, 'printable_json'):
+            print(out.printable_json)
+        else:
+            print({k: v for k, v in out.__dict__.items() if not k.startswith("_")})
     return out
 
 class QueueingBar(IncrementalBar):

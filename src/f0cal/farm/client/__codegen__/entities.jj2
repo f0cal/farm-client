@@ -89,6 +89,11 @@ class EntityBase:
 
     def retrieve(self):
         return self
+    @property
+    def printable_json(self):
+        # SHOULD RETURN A DICTIONARY WITH THE KEYS TO BE PRINT FOR USER
+        # SHOULD BE OVERRIDDEN IN SUBCLASSES DEFUALTS TO PRINTING MOST ATTRIBUTES
+        return {k: v for k, v in self.__dict__.items() if not k.startswith("_")}
 
 
 {{ TEMPLATE(**vars()) }}

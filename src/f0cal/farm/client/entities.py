@@ -107,6 +107,9 @@ class Image(Image):
         self._conan_pull(remote)
         self.serialize()
         return self
+    @property
+    def printable_json(self):
+        return {'name': self.name, 'supported_device_types': [x['name'] for x in self.supported_device_types]}
 
 class SshKey(SshKey):
     @classmethod

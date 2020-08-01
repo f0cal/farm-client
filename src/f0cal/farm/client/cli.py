@@ -86,10 +86,20 @@ def instance_connect(parser, core, instance, connection_args, remote, *args, **k
 
 def remote_add_args(parser):
     parser.add_argument("name", help="Your local alias for the remote cluster")
-    parser.add_argument("url", help="The url of that remote cluster")
+    parser.add_argument("--url",  help="The url of that remote cluster")
 
 @f0cal.entrypoint(["farm", "remote", "add"], args=remote_add_args)
 def add_remote(parser, core, name, url):
+    if url is None:
+        Cluster = create_class("Cluster", "cluster")
+        clusters = Cluster.query()
+        for cluster in clusters:
+            if cluster.fully_qualified_name == name:
+                base_url = f0cal.CORE.config["api"]["api_url"]
+                url = f'{base_url}{cluster.path}'
+                break
+        else:
+            print(f'No cluster named {name} was found')
     remotes_file = JsonFileParser(core.config['api']['remotes_file'])
     if name in remotes_file and remotes_file[name] == url:
         print('WARNING: This remote already exists')

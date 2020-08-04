@@ -123,9 +123,12 @@ entrypoints:
       - name: image-name
         positional: false
         required: true
+        type: 'lambda name: verify_conan_name(name)'
       - name: version
         positional: false
         required: true
+        type: 'lambda name: verify_conan_name(name)'
+
       - name: no-block
         kwargs:
           action: "'store_true'"

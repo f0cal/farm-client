@@ -14,6 +14,8 @@ import sys
 import rich.console
 import rich.table
 from collections.abc import Iterable
+from conans.model.ref import ConanName
+from conans.errors import InvalidNameException
 
 REFERENCE_REGEX = '([\\w]*)\\/([\\w]*)(#[\\d]*)?$'
 
@@ -279,3 +281,10 @@ class ImageStatusPrinter:
             print("There was an error saving you instance please contact F0cal")
             exit(1)
 
+def verify_conan_name(name):
+    try:
+        ConanName.validate_name(name)
+    except InvalidNameException as e:
+        print(e.args[0])
+        exit(1)
+    return name

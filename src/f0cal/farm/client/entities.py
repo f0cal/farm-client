@@ -88,14 +88,12 @@ class Image(Image):
         conan_client = ConanClient()
         conan_client.image_push(self.name, remote)
 
-
     def serialize(self):
         # TODO MOVE JSONFILE PARSER TO AVOIND CIRCULAR IMPORT AND IMPORT UP TOP
         from f0cal.farm.client.utils import JsonFileParser
         images_file = JsonFileParser(f0cal.CORE.config['api']['images_file'])
         if self.name in images_file:
             raise Exception(f'The image {self.name} already exists locally')
-
         for factory in self.known_instance_factories:
             factory.pop('id')
         images_file[self.name] = {
@@ -107,6 +105,13 @@ class Image(Image):
         self._conan_pull(remote)
         self.serialize()
         return self
+
+    @property
+    def printable_json(self):
+        _s = [x['name'] for x in self.supported_device_types]
+        return {'name': self.name, \
+                'supported_device_types': _s, \
+        }
 
 class SshKey(SshKey):
     @classmethod

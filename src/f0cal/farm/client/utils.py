@@ -11,6 +11,10 @@ import os
 from f0cal.farm.client.api_client import DeviceFarmApi, ConnectionError, ClientError, ServerError
 import wrapt
 import sys
+import rich.console
+import rich.table
+from collections.abc import Iterable
+
 REFERENCE_REGEX = '([\\w]*)\\/([\\w]*)(#[\\d]*)?$'
 
 class JsonFileParser:
@@ -127,18 +131,70 @@ def api_key_required(wrapped, instance, args, kwargs):
         exit(1)
     return wrapped(*args, **kwargs)
 
+class Printer:
+
+    @classmethod
+    def _force_string(cls, blob):
+        if isinstance(blob, list):
+            return "\n".join(blob)
+        return str(blob)
+
+    @classmethod
+    def _blob_to_table(cls, rows, cols):
+        table = rich.table.Table(show_header=True)
+        [table.add_column(col_name) for col_name in cols]
+        [table.add_row(*r) for r in rows]
+        return table
+
+    @classmethod
+    def blob_to_table(cls, blob):
+        if not isinstance(blob, list):
+            blob = [blob]
+        _coerce = lambda _row: [cls._force_string(_c) for _c in _row.values()]
+        _capitalize = lambda _col: _col.replace("_", " ").title()
+        rows = [tuple(_coerce(row)) for row in blob]
+        cols = [_capitalize(col) for col in blob.pop().keys()]
+        return cls._blob_to_table(rows, cols)
+
+    @classmethod
+    def unk_to_blob(cls, unk):
+        if isinstance(unk, list):
+            return [cls.unk_to_blob(u) for u in unk]
+        elif isinstance(unk, dict):
+            return unk
+        return cls.obj_to_blob(unk)
+
+    @classmethod
+    def obj_to_blob(cls, obj):
+        if hasattr(obj, 'printable_json'):
+            return obj.printable_json
+        return {k: v for k, v in obj.__dict__.items() if not k.startswith("_")}
+
+    @classmethod
+    def print_table(cls, unk):
+        if isinstance(unk, Iterable) and len(unk) == 0:
+            print("EMPTY")
+            return
+        blob = cls.unk_to_blob(unk)
+        rich.console.Console().print(cls.blob_to_table(blob))
+
+    @classmethod
+    def print_json(cls, unk):
+        blob = cls.unk_to_blob(unk)
+        print(blob)
+
 @wrapt.decorator
 def printer(wrapped, instance, args, kwargs):
+    json = kwargs.pop("json", False)
     try:
         out = wrapped(*args, **kwargs)
     except (ConnectionError, ClientError, ServerError) as e:
         print(e.args[0])
         exit(1)
-    if isinstance(out, list):
-        for x in out:
-            print({k: v for k, v in x.__dict__.items() if not k.startswith("_")})
+    if json:
+        Printer.print_json(out)
     else:
-        print({k: v for k, v in out.__dict__.items() if not k.startswith("_")})
+        Printer.print_table(out)
     return out
 
 class QueueingBar(IncrementalBar):

@@ -1,8 +1,7 @@
 import f0cal
 import argparse
 import sys
-from tabulate import tabulate
-from f0cal.farm.client.utils import query, create_class, JsonFileParser, InstanceStatusPrinter, resolve_remote_url
+from f0cal.farm.client.utils import query, create_class, JsonFileParser, InstanceStatusPrinter, resolve_remote_url, Printer
 from f0cal.farm.client.__codegen__.cli import parse_update_string, printer, api_key_required
 from  f0cal.farm.client.conan_client import ConanClient
 
@@ -43,6 +42,7 @@ def _args_instance_create(parser):
     parser.add_argument("--remote", "-r", type=lambda remote_name: resolve_remote_url(remote_name), required=True)
     parser.add_argument("--image", type=lambda name: query("Image", "image", name, remote=True), required=True,)
     parser.add_argument("--device-type", type=lambda name: query("DeviceType", "device_type", name, remote=True),required=True,)
+
 @f0cal.entrypoint(["farm", "instance", "create"], args=_args_instance_create)
 @printer
 @api_key_required
@@ -106,18 +106,20 @@ def add_remote(parser, core, name, url):
         return
     conan_client = ConanClient()
     conan_client.add_remote(name, url)
-
     remotes_file = JsonFileParser(core.config['api']['remotes_file'])
     remotes_file[name] = url
     remotes_file.write()
+
 @f0cal.entrypoint(["farm", "remote", "list"])
 def remote_list(parser, core):
     remotes_file = JsonFileParser(core.config['api']['remotes_file'])
-    print(tabulate(remotes_file.data.items(), headers=["Name", "URL"]))
+    data = [dict(alias=k, url=v) for k, v in remotes_file.data.items()]
+    Printer.print_table(data)
 
 def image_push_args(parser):
     parser.add_argument("--remote", "-r", required=True)
     parser.add_argument("local_image", help='Name of locally cached image')
+
 @f0cal.entrypoint(["farm", "image", "push"], args=image_push_args)
 def image_push(parser, core, remote, local_image):
 

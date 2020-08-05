@@ -130,11 +130,10 @@ def image_push(parser, core, remote, local_image):
     if local_image not in images_file:
         print(f'ERROR: Image {local_image} does not exist locally')
         exit(1)
-    local_image_data = images_file[local_image]
-
-    img = img_cls.create(**local_image_data['data'])
     print("Compressing and uploading you image, this may take a while...")
-    img._conan_push(remote)
+    img_cls._conan_push(remote, local_image)
+    local_image_data = images_file[local_image]
+    img = img_cls.create(**local_image_data['data'])
     factory_class = create_class('KnownInstanceFactory', 'known_instance_factory', remote=True)
     for factory in local_image_data['known_instance_factories']:
         print(factory)

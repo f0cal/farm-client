@@ -84,13 +84,14 @@ class Instance(Instance):
 
 
 class Image(Image):
-    def _conan_pull(self, remote):
+    @classmethod
+    def _conan_pull(cls, remote, image_name):
         conan_client = ConanClient()
-        conan_client.image_pull(self.name, remote)
-
-    def _conan_push(self, remote):
+        conan_client.image_pull(image_name, remote)
+    @classmethod
+    def _conan_push(cls, remote, image_name):
         conan_client = ConanClient()
-        conan_client.image_push(self.name, remote)
+        conan_client.image_push(image_name, remote)
 
     def serialize(self):
         # TODO MOVE JSONFILE PARSER TO AVOIND CIRCULAR IMPORT AND IMPORT UP TOP
@@ -106,7 +107,7 @@ class Image(Image):
         images_file.write()
 
     def pull(self, remote):
-        self._conan_pull(remote)
+        self._conan_pull(remote, self.name)
         self.serialize()
         return self
 

@@ -133,6 +133,7 @@ def image_push(parser, core, remote, local_image):
     local_image_data = images_file[local_image]
 
     img = img_cls.create(**local_image_data['data'])
+    print("Compressing and uploading you image, this may take a while...")
     img._conan_push(remote)
     factory_class = create_class('KnownInstanceFactory', 'known_instance_factory', remote=True)
     for factory in local_image_data['known_instance_factories']:

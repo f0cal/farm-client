@@ -69,11 +69,9 @@ class DeviceFarmApi:
 
     def _prep_data(self, data):
         for key, val in data.items():
-            if val is None:
-                del data[key]
             if isinstance(val, EntityBase):
                 data[key] = val.id
-
+        # There is an issue with FlaskResty/marshmallow and None values
         data = {k: v for k, v in data.items() if v is not None}
         return data
 

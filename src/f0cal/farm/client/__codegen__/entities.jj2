@@ -87,7 +87,7 @@ class EntityBase:
         response = self.CLIENT.action(self.NOUN, self.id, verb, data)
         return self._from_response(response)
 
-    def retrieve(self):
+    def retrieve(self, *args, **kwargs):
         return self
     @property
     def printable_json(self):

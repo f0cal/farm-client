@@ -44,8 +44,7 @@ def resolve_remote_url(remote_name):
     remotes_file = JsonFileParser(f0cal.CORE.config['api']['remotes_file'])
     if remote_name in remotes_file:
         return remotes_file[remote_name]
-    print(f'Remote {remote_name} not found. Please configure the remote first using: f0cal remote add '
-          f'<remote_name>  <remote_url>')
+    print(f'Remote {remote_name} not found. Please configure the remote first using: f0cal remote add')
     exit(1)
 
 def create_class(class_name, noun, remote=False):

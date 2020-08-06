@@ -99,7 +99,8 @@ def add_remote(parser, core, name, url):
                 url = f'{base_url}{cluster.path}'
                 break
         else:
-            print(f'No cluster named {name} was found')
+            print(f'No cluster named {name} was found. Please see available clusters via:\nf0cal farm cluster query')
+            exit(1)
     remotes_file = JsonFileParser(core.config['api']['remotes_file'])
     if name in remotes_file and remotes_file[name] == url:
         print('WARNING: This remote already exists')
@@ -130,10 +131,10 @@ def image_push(parser, core, remote, local_image):
     if local_image not in images_file:
         print(f'ERROR: Image {local_image} does not exist locally')
         exit(1)
+    print("Compressing and uploading you image, this may take a while...")
+    img_cls._conan_push(remote, local_image)
     local_image_data = images_file[local_image]
-
     img = img_cls.create(**local_image_data['data'])
-    img._conan_push(remote)
     factory_class = create_class('KnownInstanceFactory', 'known_instance_factory', remote=True)
     for factory in local_image_data['known_instance_factories']:
         print(factory)

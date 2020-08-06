@@ -1,4 +1,3 @@
-
 from f0cal.farm.client.__codegen__.entities import *
 from f0cal.farm.client.api_client import DeviceFarmApi
 from f0cal.farm.client.conan_client import ConanClient
@@ -69,7 +68,7 @@ class Instance(Instance):
         no_block = kwargs.pop('no_block')
         # TODO THIS IS A BIT UGLY SAVE SHOULD ACTAULLY BE A MODE OF CREATION ON AN IMAGE NO VERB ON INSTANCWE
         image_data = self._do_verb('save', kwargs)
-        cls = type( "Image", (Image,), {"CLIENT": self.CLIENT, "NOUN": 'image'})
+        cls = type("Image", (Image,), {"CLIENT": self.CLIENT, "NOUN": 'image'})
         image = cls.from_id(image_data.id)
         if not no_block:
             # Ugly circular import
@@ -78,15 +77,21 @@ class Instance(Instance):
             printer.block()
         return image
 
+    @property
+    def printable_json(self):
+        return {'status': self.status, 'id': self.id, 'queue_position': self.queue_position,
+                'created_at': self.created_at, 'ended_at': self.ended_at}
+
 
 class Image(Image):
-    def _conan_pull(self, remote):
+    @classmethod
+    def _conan_pull(cls, remote, image_name):
         conan_client = ConanClient()
-        conan_client.image_pull(self.name, remote)
-
-    def _conan_push(self, remote):
+        conan_client.image_pull(image_name, remote)
+    @classmethod
+    def _conan_push(cls, remote, image_name):
         conan_client = ConanClient()
-        conan_client.image_push(self.name, remote)
+        conan_client.image_push(image_name, remote)
 
     def serialize(self):
         # TODO MOVE JSONFILE PARSER TO AVOIND CIRCULAR IMPORT AND IMPORT UP TOP
@@ -102,7 +107,7 @@ class Image(Image):
         images_file.write()
 
     def pull(self, remote):
-        self._conan_pull(remote)
+        self._conan_pull(remote, self.name)
         self.serialize()
         return self
 
@@ -111,7 +116,8 @@ class Image(Image):
         _s = [x['name'] for x in self.supported_device_types]
         return {'name': self.name, \
                 'supported_device_types': _s, \
-        }
+                }
+
 
 class SshKey(SshKey):
     @classmethod
@@ -122,3 +128,7 @@ class SshKey(SshKey):
             f.write(inst.private_key)
         os.chmod(save_file, 0o600)
         return inst
+
+    @property
+    def printable_json(self):
+        return {'name': self.name, 'id': self.id}

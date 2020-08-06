@@ -99,7 +99,8 @@ def add_remote(parser, core, name, url):
                 url = f'{base_url}{cluster.path}'
                 break
         else:
-            print(f'No cluster named {name} was found')
+            print(f'No cluster named {name} was found. Please see available clusters via:\nf0cal farm cluster query')
+            exit(1)
     remotes_file = JsonFileParser(core.config['api']['remotes_file'])
     if name in remotes_file and remotes_file[name] == url:
         print('WARNING: This remote already exists')

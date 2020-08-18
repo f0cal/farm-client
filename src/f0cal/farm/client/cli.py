@@ -42,6 +42,8 @@ def _args_instance_create(parser):
     parser.add_argument("--remote", "-r", type=lambda remote_name: resolve_remote_url(remote_name), required=True)
     parser.add_argument("--image", type=lambda name: query("Image", "image", name, remote=True), required=True,)
     parser.add_argument("--device-type", type=lambda name: query("DeviceType", "device_type", name, remote=True),required=True,)
+    parser.add_argument("--ssh-key", type=lambda name: query("SshKey", "ssh_key", name, remote=False))
+
 
 @f0cal.entrypoint(["farm", "instance", "create"], args=_args_instance_create)
 @printer

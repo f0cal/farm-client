@@ -1,14 +1,30 @@
+import os
+import sys
+import logging
+
 from conans.client.conan_api import Conan
 from conans.model.ref import ConanFileReference
 from conans.errors import ConanException
+
+VENV_HOME = sys.prefix
+LOG = logging.getLogger(__name__)
+
 class ConanClient:
     #TODO THIS SHOULD GET REPLACED WITH API KEY BASED AUTH
     USER = 'f0cal'
     PASSWORD = 'f0cal'
 
-    def __init__(self):
-        self.conan = Conan()
+    @classmethod
+    def set_conan_cache(cls):
+        if sys.prefix == sys.base_prefix:
+            LOG.warning('NOT USING F0CAL INSIDE ENV, SETTING CONAN CACHE TO USER HOME DIR INSTEAD OF VENV')
+            return
+        os.environ["CONAN_USER_HOME"] = VENV_HOME
 
+    def __init__(self):
+        self.set_conan_cache()
+        self.conan = Conan()
+        
     def _remote_add(self, name, url):
         try:
             self.conan.remote_add(remote_name=name, url=url)

@@ -1,3 +1,5 @@
+from urllib import response
+
 from f0cal.farm.client.__codegen__.entities import *
 from f0cal.farm.client.api_client import DeviceFarmApi
 from f0cal.farm.client.conan_client import ConanClient
@@ -76,7 +78,13 @@ class Instance(Instance):
             printer = ImageStatusPrinter(image)
             printer.block()
         return image
-
+    def get_serial_log(self, output_file, *args, **kwargs):
+        url = f'{self.CLIENT.url}/instance/{self.id}/serial_log/'
+        response = self.CLIENT._get_raw(url)
+        with open(output_file, 'w') as f:
+            f.write(response.text)
+        print(f'Succesfully wrote serial logs  to {output_file}')
+        exit(0)
     @property
     def printable_json(self):
         return {'status': self.status, 'id': self.id, 'queue_position': self.queue_position,

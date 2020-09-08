@@ -134,7 +134,7 @@ entrypoints:
           action: "'store_true'"
 
   - noun: instance
-    verb: get_serial_log
+    verb: get-serial-log
     remote: True
     instance: true
     args:

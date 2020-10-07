@@ -1,2 +1,2 @@
 -e git+https://github.com/f0cal/plugnparse@qhughes/tabcomplete#egg=plugnparse
--e git+https://github.com/f0cal/core2@qhughes/tabcomplete#egg=f0cal
+-e git+https://github.com/f0cal/core2@qhughes/namespacerefactor#egg=f0cal.core

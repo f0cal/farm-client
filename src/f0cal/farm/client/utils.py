@@ -41,14 +41,14 @@ class JsonFileParser:
         with open(self.json_file, 'w') as f:
             json.dump(self.data, f)
 def resolve_remote_url(remote_name):
-    remotes_file = JsonFileParser(f0cal.CORE.config['api']['remotes_file'])
+    remotes_file = JsonFileParser(f0cal.core.CORE.config['api']['remotes_file'])
     if remote_name in remotes_file:
         return remotes_file[remote_name]
     print(f'Remote {remote_name} not found. Please configure the remote first using: f0cal remote add')
     exit(1)
 
 def create_class(class_name, noun, remote=False):
-    api_key = f0cal.CORE.config["api"].get("api_key")
+    api_key = f0cal.core.CORE.config["api"].get("api_key")
     if remote:
         # TODO THIS A HACKY WORKAROUND FOR THE PLUGPARSE RUNNING ALL ARG SETTERS
         parser = argparse.ArgumentParser()
@@ -57,7 +57,7 @@ def create_class(class_name, noun, remote=False):
 
         api_url = ns.remote
     else:
-        api_url = f0cal.CORE.config["api"]["api_url"]
+        api_url = f0cal.core.CORE.config["api"]["api_url"]
     client = DeviceFarmApi(api_url, api_key)
     cls = type(
         class_name, (getattr(entities, class_name),), {"CLIENT": client, "NOUN": noun}
@@ -82,7 +82,7 @@ def query(class_name, noun, ref, remote=None):
         if ref_type == 'name':
             # Instance names are resolved locally
             if noun == 'instance':
-                device_config = JsonFileParser(f0cal.CORE.config['api']['device_file'])
+                device_config = JsonFileParser(f0cal.core.CORE.config['api']['device_file'])
                 if ref not in device_config:
                     print(
                         'Name instance name not found. If you created in a different env try querying '
@@ -124,7 +124,7 @@ def parse_update_string(update_string):
 
 @wrapt.decorator
 def api_key_required(wrapped, instance, args, kwargs):
-    api_key = f0cal.CORE.config['api'].get('api_key')
+    api_key = f0cal.core.CORE.config['api'].get('api_key')
     if api_key is None:
         print(
             'An API KEY is required for this action please set one with\n$f0cal farm config update "api_key=$YOU_API_KEY"\n'

@@ -67,7 +67,7 @@ _cli_{{ noun }}_{{ verb }}
 
 {% macro CALLABLE(noun, verb, instance=False, requires_api_key=True, remote=False) %}
   {% set argsetter = ARGSETTER_NAME(noun, verb) %} 
-@f0cal.entrypoint(["farm", "{{ FORMAT_CLI_NOUN(noun) }}", "{{ verb }}"], args={{ argsetter }})
+@f0cal.core.entrypoint(["farm", "{{ FORMAT_CLI_NOUN(noun) }}", "{{ verb }}"], args={{ argsetter }})
 @printer
 {% if requires_api_key %}
 @api_key_required

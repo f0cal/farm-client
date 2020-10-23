@@ -48,7 +48,13 @@ class EntityBase:
     @classmethod
     def query(cls, *args, **kwargs):
         response = cls.CLIENT.list(cls.NOUN)
-        return [cls._from_response(i) for i in response]
+        return [cls._from_response(i) for i in response if not i.get('hide_from_client')]
+        # TODO: filtering on hide_from_client is a patch until rework DB management of entities
+        #       to allow existence of entries on server-side that are not available to clients,
+        #       such that server-side can manage these entities coherently.
+        #       Using 'if not', so only entity types that require filtering need this field.
+        #       Filtering should occur on server-side, and should support more advanced filtering,
+        #       such as by client roles.
 
     @classmethod
     def from_id(cls, _id, *args, **kwargs):

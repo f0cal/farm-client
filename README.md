@@ -1,8 +1,8 @@
-# `f0cal/farm`
+# `f0cal/farm-client`
 
-Python API client and CLI wrapper for the FØCAL [device farm API](https://f0cal.com).
+Python API client and CLI wrapper for the [FØCAL](https://f0cal.com) device farm API.
 
-Implements the `f0cal.farm.client` namespace.
+Implements the `f0cal.farm.client` Python namespace.
 
 ## Quick start
 

@@ -27,7 +27,7 @@ pip install f0cal.farm.client \
 
 ```bash
 git clone https://github.com/f0cal/farm-client && \
-  cd farm && \
+  cd farm-client && \
   pip install ./ -r requirements.txt -c constraints.txt
 ```
 

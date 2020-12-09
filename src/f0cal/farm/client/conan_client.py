@@ -15,14 +15,16 @@ class ConanClient:
     PASSWORD = 'f0cal'
 
     @classmethod
-    def set_conan_cache(cls):
+    def set_conan_env(cls):
+        os.environ["CONAN_REQUEST_TIMEOUT"] = "600"
+        # TODO THE FOLLOWING SEEMS TO BE NECCARY WHEN USING A SLOW BACKEND, ONCE NETWORKING IF FIXED REMOVE
         if sys.prefix == sys.base_prefix:
             LOG.warning('NOT USING F0CAL INSIDE ENV, SETTING CONAN CACHE TO USER HOME DIR INSTEAD OF VENV')
             return
         os.environ["CONAN_USER_HOME"] = VENV_HOME
 
     def __init__(self):
-        self.set_conan_cache()
+        self.set_conan_env()
         self.conan = Conan()
         
     def _remote_add(self, name, url):

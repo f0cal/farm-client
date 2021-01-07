@@ -11,7 +11,7 @@
 import sys
 
 from pkg_resources import require, VersionConflict
-from setuptools import setup, find_namespace_packages
+from setuptools import setup
 from setuptools.command.build_py import build_py as _build_py
 from setuptools.command.develop import develop as _develop
 
@@ -93,5 +93,4 @@ if __name__ == "__main__":
                      )
     setup(use_pyscaffold=True,
           cmdclass=_cmdclass,
-          packages=find_namespace_packages(include=['f0cal.*'])
           )

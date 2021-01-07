@@ -1,39 +1,36 @@
-# `f0cal/farm`
+# `f0cal/farm-client`
 
-Python API client and CLI wrapper for the FØCAL [device farm](https://f0cal.com/devices). 
+Python API client and CLI wrapper for the [FØCAL](https://f0cal.com) device farm API.
+
+Implements the `f0cal.farm.client` Python namespace.
 
 ## Quick start
 
+```bash
+pip install f0cal.farm.client \
+  -i https://dl.f0cal.com/py
+  
+f0cal farm --help
 ```
-git clone https://github.com/f0cal/farm && \
-  cd farm && \
-  pip install ./ -r requirements.txt -c constraints.txt && \
-  f0cal farm --help
-```
-## Basics
-
-FØCAL's [device farm](https://f0cal.com/devices) is "AWS for devices." This package is the device farm's canonical API client implementation. You can:
-
-* Spin up a device with the OS of your choice.
-* Log in to the device as a superuser.
-* Modify the device filesystem to meet your needs.
-* Save the modified device image for later.
-* Share the modified device image with collaborators.
+**NOTE** that many client workflows require an API key from https://app.f0cal.com.
 
 ## Installation
 
 ### `pip`
 
-Not currently available
+```bash
+pip install f0cal.farm.client \
+  -i https://dl.f0cal.com/py
+```
 
 ### Source
 
-```
-git clone https://github.com/f0cal/farm && \
-  cd farm && \
+```bash
+git clone https://github.com/f0cal/farm-client && \
+  cd farm-client && \
   pip install ./ -r requirements.txt -c constraints.txt
 ```
 
 ## More
 
-[Official docs site.](https://f0cal.com/docs)
+[Official docs](https://docs.f0cal.com/farm-client)

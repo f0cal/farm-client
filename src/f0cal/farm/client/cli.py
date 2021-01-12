@@ -1,4 +1,4 @@
-import f0cal
+import f0cal.core
 import argparse
 import sys
 from f0cal.farm.client.utils import query, create_class, JsonFileParser, InstanceStatusPrinter, resolve_remote_url, Printer

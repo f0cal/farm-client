@@ -2,7 +2,7 @@ from f0cal.farm.client.__codegen__.entities import *
 from f0cal.farm.client.api_client import DeviceFarmApi
 from f0cal.farm.client.conan_client import ConanClient
 import argparse
-import f0cal
+from f0cal import core
 import urllib
 import os
 import logging
@@ -47,7 +47,7 @@ class Instance(Instance):
     def _get_user(self, remote):
         try:
             image_id = self.image_id
-            api_key = f0cal.core.CORE.config["api"].get("api_key")
+            api_key = core.CORE.config["api"].get("api_key")
             client = DeviceFarmApi(remote, api_key)
             img_cls = type('Image', (Image,), {"CLIENT": client, "NOUN": 'image'})
             image = img_cls.from_id(image_id)
@@ -96,7 +96,7 @@ class Image(Image):
     def serialize(self):
         # TODO MOVE JSONFILE PARSER TO AVOIND CIRCULAR IMPORT AND IMPORT UP TOP
         from f0cal.farm.client.utils import JsonFileParser
-        images_file = JsonFileParser(f0cal.core.CORE.config['api']['images_file'])
+        images_file = JsonFileParser(core.CORE.config['api']['images_file'])
         if self.name in images_file:
             raise Exception(f'The image {self.name} already exists locally')
         for factory in self.known_instance_factories:

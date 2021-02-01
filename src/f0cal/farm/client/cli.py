@@ -1,11 +1,11 @@
-from f0cal import core
+import f0cal.core
 import argparse
 import sys
 from f0cal.farm.client.utils import query, create_class, JsonFileParser, InstanceStatusPrinter, resolve_remote_url, Printer
 from f0cal.farm.client.__codegen__.cli import parse_update_string, printer, api_key_required
 from  f0cal.farm.client.conan_client import ConanClient
 
-@core.plugin(name='farm_api', sets='config_file')
+@f0cal.core.plugin(name='farm_api', sets='config_file')
 def config_file():
     return '''
     [api]
@@ -21,7 +21,7 @@ def configure_args(parser):
     parser.add_argument("update_args", type=lambda update_string: parse_update_string(update_string), help=help_string)
 
 
-@core.entrypoint(['farm', 'config', 'update'], args=configure_args)
+@f0cal.core.entrypoint(['farm', 'config', 'update'], args=configure_args)
 def configure(parser, core,  update_args):
     if 'api_key' in update_args:
         core.config['api']['api_key'] = update_args['api_key']
@@ -45,7 +45,7 @@ def _args_instance_create(parser):
     parser.add_argument("--ssh-key", type=lambda name: query("SshKey", "ssh_key", name, remote=False))
 
 
-@core.entrypoint(["farm", "instance", "create"], args=_args_instance_create)
+@f0cal.core.entrypoint(["farm", "instance", "create"], args=_args_instance_create)
 @printer
 @api_key_required
 def _cli_instance_create(parser, core, name, remote,  no_block=False, wait_time=15, *args, **dargs):
@@ -74,7 +74,7 @@ def args_instance_connect(parser):
     parser.add_argument('connection_args', nargs=argparse.REMAINDER)
 
 
-@core.entrypoint(["farm", "instance", "connect"], args=args_instance_connect)
+@f0cal.core.entrypoint(["farm", "instance", "connect"], args=args_instance_connect)
 def instance_connect(parser, core, instance, connection_args, remote, *args, **kwargs):
     if '--ssh' in connection_args:
         connection_type = 'ssh'
@@ -90,14 +90,14 @@ def remote_add_args(parser):
     parser.add_argument("name", help="Your local alias for the remote cluster")
     parser.add_argument("--url",  help="The url of that remote cluster")
 
-@core.entrypoint(["farm", "remote", "add"], args=remote_add_args)
+@f0cal.core.entrypoint(["farm", "remote", "add"], args=remote_add_args)
 def add_remote(parser, core, name, url):
     if url is None:
         Cluster = create_class("Cluster", "cluster")
         clusters = Cluster.query()
         for cluster in clusters:
             if cluster.fully_qualified_name == name:
-                base_url = core.CORE.config["api"]["api_url"]
+                base_url = f0cal.core.CORE.config["api"]["api_url"]
                 url = f'{base_url}{cluster.path}'
                 break
         else:
@@ -113,7 +113,7 @@ def add_remote(parser, core, name, url):
     remotes_file[name] = url
     remotes_file.write()
 
-@core.entrypoint(["farm", "remote", "list"])
+@f0cal.core.entrypoint(["farm", "remote", "list"])
 def remote_list(parser, core):
     remotes_file = JsonFileParser(core.config['api']['remotes_file'])
     data = [dict(alias=k, url=v) for k, v in remotes_file.data.items()]
@@ -123,13 +123,13 @@ def image_push_args(parser):
     parser.add_argument("--remote", "-r", required=True)
     parser.add_argument("local_image", help='Name of locally cached image')
 
-@core.entrypoint(["farm", "image", "push"], args=image_push_args)
+@f0cal.core.entrypoint(["farm", "image", "push"], args=image_push_args)
 def image_push(parser, core, remote, local_image):
 
     # TODO GENREALLY NEED SOME ERROR HANDELING HERE.
     # TODO MOVE LOGINC INTO IMAGE ENTITY
     img_cls = create_class("Image", "image", remote=True)
-    images_file = JsonFileParser(core.CORE.config['api']['images_file'])
+    images_file = JsonFileParser(f0cal.core.CORE.config['api']['images_file'])
     if local_image not in images_file:
         print(f'ERROR: Image {local_image} does not exist locally')
         exit(1)

@@ -33,4 +33,4 @@ git clone https://github.com/f0cal/farm-client && \
 
 ## More
 
-[Official docs](https://docs.f0cal.com/farm-client)
+[Official docs](https://docs.f0cal.com/)

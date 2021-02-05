@@ -109,7 +109,7 @@ def {{ ENTRYPOINT_NAME(noun, verb) }}(parser, core, *args, **dargs):
 #GENERATED CODE, DO NOT MODIFY
 ###########################################################
 
-import f0cal
+import f0cal.core
 import wrapt
 
 from f0cal.farm.client import entities

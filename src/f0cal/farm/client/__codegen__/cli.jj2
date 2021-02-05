@@ -42,7 +42,7 @@
 {%- endmacro -%}
 
 {%- macro ARGSETTER_NAME(noun, verb) -%}
-_args_{{ noun }}_{{ verb }} 
+_args_{{ noun }}_{{ verb | replace('-', '_')}}
 {%- endmacro -%}
 
 {% macro ARGSETTER(noun, verb, accepts, returns, remote) %}
@@ -61,7 +61,7 @@ def {{ ARGSETTER_NAME(noun, verb) }}(parser):
 {% endmacro %}
 
 {%- macro ENTRYPOINT_NAME(noun, verb) -%}
-_cli_{{ noun }}_{{ verb }}
+_cli_{{ noun }}_{{ verb | replace('-', '_') }}
 
 {%- endmacro -%}
 
@@ -78,7 +78,7 @@ def {{ ENTRYPOINT_NAME(noun, verb) }}(parser, core, *args, **dargs):
   {% if remote %}
   {% endif %}
   inst = dargs.pop("{{ noun }}")
-  return inst.{{ verb }}(*args, **dargs)
+  return inst.{{ verb | replace('-', '_')}}(*args, **dargs)
   {% else %}
   {% if remote %}
   remote = dargs.get("remote")
@@ -87,7 +87,7 @@ def {{ ENTRYPOINT_NAME(noun, verb) }}(parser, core, *args, **dargs):
   cls = create_class("{{ CLASS_NAME(noun) }}", "{{ noun }}")
   {% endif %}
 
-  return cls.{{ verb }}(**dargs)
+  return cls.{{ verb | replace('-', '_')}}(**dargs)
   {% endif %}
 {% endmacro %}
 

@@ -132,6 +132,19 @@ entrypoints:
       - name: no-block
         kwargs:
           action: "'store_true'"
+
+  - noun: instance
+    verb: get-serial-log
+    remote: True
+    instance: true
+    args:
+      - name: instance
+        positional: true
+        required: true
+        type:
+          noun: instance
+      - name: output-file
+        required: true
   - noun: ssh_key
     verb:  query
     args:

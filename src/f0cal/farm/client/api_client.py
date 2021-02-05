@@ -74,9 +74,7 @@ class DeviceFarmApi:
         # There is an issue with FlaskResty/marshmallow and None values
         data = {k: v for k, v in data.items() if v is not None}
         return data
-
-    def _get(self, url, *args, **kwargs):
-
+    def _get_raw(self, url, *args, **kwargs):
         headers = kwargs.pop('headers', {})
         headers = self._add_auth(headers)
         kwargs['headers'] = headers
@@ -88,7 +86,10 @@ class DeviceFarmApi:
             raise ConnectionError(err_str)
 
         self._check_response(response)
+        return response
 
+    def _get(self, url, *args, **kwargs):
+        response = self._get_raw(url, *args, **kwargs)
         return response.json()['data']
 
     def _post(self, url, data, *args, **kwargs):

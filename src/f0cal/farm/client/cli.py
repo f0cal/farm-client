@@ -107,8 +107,6 @@ def add_remote(parser, core, name, url):
     if name in remotes_file and remotes_file[name] == url:
         print('WARNING: This remote already exists')
         return
-    conan_client = ConanClient()
-    conan_client.add_remote(name, url)
     remotes_file = JsonFileParser(core.config['api']['remotes_file'])
     remotes_file[name] = url
     remotes_file.write()

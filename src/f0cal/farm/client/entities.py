@@ -95,11 +95,11 @@ class Image(Image):
     @classmethod
     def _conan_pull(cls, remote, image_name):
         conan_client = ConanClient()
-        conan_client.image_pull(image_name, remote)
+        conan_client.image_pull(image_name)
     @classmethod
     def _conan_push(cls, remote, image_name):
         conan_client = ConanClient()
-        conan_client.image_push(image_name, remote)
+        conan_client.image_push(image_name)
 
     def serialize(self):
         # TODO MOVE JSONFILE PARSER TO AVOIND CIRCULAR IMPORT AND IMPORT UP TOP

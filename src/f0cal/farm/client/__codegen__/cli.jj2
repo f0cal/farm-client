@@ -66,8 +66,8 @@ _cli_{{ noun }}_{{ verb | replace('-', '_') }}
 {%- endmacro -%}
 
 {% macro CALLABLE(noun, verb, instance=False, requires_api_key=True, remote=False) %}
-  {% set argsetter = ARGSETTER_NAME(noun, verb) %}
-@f0cal.entrypoint(["farm", "{{ FORMAT_CLI_NOUN(noun) }}", "{{ verb }}"], args={{ argsetter }})
+  {% set argsetter = ARGSETTER_NAME(noun, verb) %} 
+@f0cal.core.entrypoint(["farm", "{{ FORMAT_CLI_NOUN(noun) }}", "{{ verb }}"], args={{ argsetter }})
 @printer
 {% if requires_api_key %}
 @api_key_required
@@ -109,7 +109,7 @@ def {{ ENTRYPOINT_NAME(noun, verb) }}(parser, core, *args, **dargs):
 #GENERATED CODE, DO NOT MODIFY
 ###########################################################
 
-import f0cal
+import f0cal.core
 import wrapt
 
 from f0cal.farm.client import entities

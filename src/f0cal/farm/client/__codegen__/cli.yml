@@ -80,25 +80,6 @@ entrypoints:
         positional: true
         type: query_string
 
-#  - noun: instance
-#    verb: start
-#    instance: true
-#    args:
-#      - name: instance
-#        positional: true
-#
-#        type:
-#          noun: instance
-#
-#  - noun: instance
-#    verb: stop
-#    instance: true
-#    args:
-#      - name: instance
-#        positional: true
-#        required: true
-#        type:
-#          noun: instance
 
   - noun: instance
     verb: destroy

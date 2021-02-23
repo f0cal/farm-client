@@ -97,12 +97,12 @@ class Image(Image):
         conan_client = ConanClient()
         conan_client.image_pull(image_name)
     @classmethod
-    def _conan_push(cls, remote, image_name):
+    def _conan_push(cls, image_name):
         conan_client = ConanClient()
         conan_client.image_push(image_name)
 
     def serialize(self):
-        # TODO MOVE JSONFILE PARSER TO AVOIND CIRCULAR IMPORT AND IMPORT UP TOP
+        # TODO (HACKY) MOVE JSONFILE PARSER TO AVOID CIRCULAR IMPORT AND IMPORT UP TOP
         from f0cal.farm.client.utils import JsonFileParser
         images_file = JsonFileParser(f0cal.core.CORE.config['api']['images_file'])
         if self.name in images_file:
@@ -114,16 +114,16 @@ class Image(Image):
             'known_instance_factories': self.known_instance_factories}
         images_file.write()
 
-    def pull(self, remote):
-        self._conan_pull(remote, self.name)
+    def pull(self):
+        self._conan_pull(self.name)
         self.serialize()
         return self
 
     @property
     def printable_json(self):
         _s = [x['name'] for x in self.supported_device_types]
-        return {'name': self.name, \
-                'supported_device_types': _s, \
+        return {'name': self.name,
+                'supported_device_types': _s,
                 }
 
 

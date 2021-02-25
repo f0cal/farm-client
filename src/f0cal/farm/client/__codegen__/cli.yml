@@ -19,7 +19,6 @@ entrypoints:
         type: query_string
   - noun: image
     verb: query
-    remote: True
     args:
       - name: query_string
         positional: true
@@ -27,7 +26,6 @@ entrypoints:
 
   - noun: image
     verb: retrieve
-    remote: True
     instance: true
     requires_api_key: false
     args:
@@ -38,7 +36,6 @@ entrypoints:
           noun: image
   - noun: image
     verb: pull
-    remote: True
     instance: true
     requires_api_key: true
     args:

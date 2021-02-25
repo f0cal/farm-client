@@ -40,7 +40,7 @@ def _args_instance_create(parser):
     parser.add_argument("--no-block", required=False, action="store_true",
                         help='Create an instance but do not wait for it become ready')
     parser.add_argument("--remote", "-r", type=lambda remote_name: resolve_remote_url(remote_name), required=True)
-    parser.add_argument("--image", type=lambda name: query("Image", "image", name, remote=True), required=True,)
+    parser.add_argument("--image", type=lambda name: query("Image", "image", name), required=True,)
     parser.add_argument("--device-type", type=lambda name: query("DeviceType", "device_type", name, remote=True),required=True,)
     parser.add_argument("--ssh-key", type=lambda name: query("SshKey", "ssh_key", name, remote=False))
 
@@ -134,7 +134,7 @@ def image_push(parser, core, local_image):
     img_cls._conan_push(local_image)
     local_image_data = images_file[local_image]
     img = img_cls.create(**local_image_data['data'])
-    factory_class = create_class('KnownInstanceFactory', 'known_instance_factory', remote=True)
+    factory_class = create_class('KnownInstanceFactory')
     for factory in local_image_data['known_instance_factories']:
         print(factory)
         inst = factory_class.create(**factory)

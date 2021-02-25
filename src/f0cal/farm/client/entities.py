@@ -9,6 +9,7 @@ import urllib
 import os
 import logging
 
+
 LOG = logging.getLogger(__name__)
 
 
@@ -39,18 +40,19 @@ class Instance(Instance):
         os.execvp(ssh_bin, connection_args)
 
     def _format_ssh_args(self, connection_args, remote):
-        user = self._get_user(remote)
+        user = self._get_user()
         ip, port = self._get_url()
         if port:
             connection_args = ['-p', f'{port}'] + connection_args
         connection_args = ['ssh'] + [f'{user}@{ip}'] + connection_args
         return connection_args
 
-    def _get_user(self, remote):
+    def _get_user(self):
         try:
             image_id = self.image_id
-            api_key = f0cal.core.CORE.config["api"].get("api_key")
-            client = DeviceFarmApi(remote, api_key)
+            api_key = f0cal.core.CORE.config["api"]["api_key"]
+            api_url = f0cal.core.CORE.config["api"]["api_url"]
+            client = DeviceFarmApi(api_url, api_key)
             img_cls = type('Image', (Image,), {"CLIENT": client, "NOUN": 'image'})
             image = img_cls.from_id(image_id)
             return image.admin_user
@@ -70,7 +72,10 @@ class Instance(Instance):
         no_block = kwargs.pop('no_block')
         # TODO THIS IS A BIT UGLY SAVE SHOULD ACTAULLY BE A MODE OF CREATION ON AN IMAGE NO VERB ON INSTANCWE
         image_data = self._do_verb('save', kwargs)
-        cls = type("Image", (Image,), {"CLIENT": self.CLIENT, "NOUN": 'image'})
+        client = DeviceFarmApi(
+            api_key=f0cal.core.CORE.config["api"].get("api_key"), api_url=f0cal.core.CORE.config["api"]["api_url"]
+        )
+        cls = type("Image", (Image,), {"CLIENT": client, "NOUN": 'image'})
         image = cls.from_id(image_data.id)
         if not no_block:
             # Ugly circular import

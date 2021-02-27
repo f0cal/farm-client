@@ -5,13 +5,14 @@ import logging
 from conans.client.conan_api import Conan
 from conans.model.ref import ConanFileReference
 from conans.errors import ConanException
+import f0cal.core
 
 VENV_HOME = sys.prefix
 LOG = logging.getLogger(__name__)
 
 CONAN_REMOTE_NAME = 'f0cal_images'
-#TODO TEMP URL SHOULD BE RELATIVE TO TOTAL URL
-CONAN_URL = 'http://conan.f0cal.com'
+
+CONAN_PATH = '/conan'
 
 class ConanClient:
     #TODO THIS SHOULD GET REPLACED WITH API KEY BASED AUTH
@@ -27,9 +28,11 @@ class ConanClient:
     def _initialize_conan(self):
         remotes = self.conan.remote_list()
         if CONAN_REMOTE_NAME not in {x.name for x in remotes}:
-            self.conan.remote_add(remote_name=CONAN_REMOTE_NAME, url=CONAN_URL)
+            api_url = f0cal.core.CORE.config["api"]["api_url"]
+            conan_url = f'{api_url}{CONAN_PATH}'
+            self.conan.remote_add(remote_name=CONAN_REMOTE_NAME, url=conan_url)
         self._authenticate(self.USER, self.PASSWORD, CONAN_REMOTE_NAME)
-    def __init__(self):
+    def __init__(self, f0cal_base_url):
         self.set_conan_cache()
         self.conan = Conan()
         self._initialize_conan()

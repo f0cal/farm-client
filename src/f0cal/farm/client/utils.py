@@ -48,7 +48,7 @@ def resolve_remote_url(remote_name):
     exit(1)
 
 def create_class(class_name, noun, remote=False, entities=entities):
-    api_key = f0cal.CORE.config["api"].get("api_key")
+    api_key = f0cal.core.CORE.config["api"].get("api_key")
     if remote:
         # TODO THIS A HACKY WORKAROUND FOR THE PLUGPARSE RUNNING ALL ARG SETTERS
         parser = argparse.ArgumentParser()

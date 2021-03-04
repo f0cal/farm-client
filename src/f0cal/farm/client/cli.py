@@ -40,7 +40,7 @@ def _args_instance_create(parser):
     parser.add_argument("--no-block", required=False, action="store_true",
                         help='Create an instance but do not wait for it become ready')
     parser.add_argument("--remote", "-r", type=lambda remote_name: resolve_remote_url(remote_name), required=True)
-    parser.add_argument("--image", type=lambda name: query("Image", "image", name, remote=True), required=True,)
+    parser.add_argument("--image", type=lambda name: query("Image", "image", name), required=True,)
     parser.add_argument("--device-type", type=lambda name: query("DeviceType", "device_type", name, remote=True),required=True,)
     parser.add_argument("--ssh-key", type=lambda name: query("SshKey", "ssh_key", name, remote=False))
 
@@ -107,8 +107,6 @@ def add_remote(parser, core, name, url):
     if name in remotes_file and remotes_file[name] == url:
         print('WARNING: This remote already exists')
         return
-    conan_client = ConanClient()
-    conan_client.add_remote(name, url)
     remotes_file = JsonFileParser(core.config['api']['remotes_file'])
     remotes_file[name] = url
     remotes_file.write()
@@ -120,11 +118,10 @@ def remote_list(parser, core):
     Printer.print_table(data)
 
 def image_push_args(parser):
-    parser.add_argument("--remote", "-r", required=True)
     parser.add_argument("local_image", help='Name of locally cached image')
 
 @f0cal.core.entrypoint(["farm", "image", "push"], args=image_push_args)
-def image_push(parser, core, remote, local_image):
+def image_push(parser, core, local_image):
 
     # TODO GENREALLY NEED SOME ERROR HANDELING HERE.
     # TODO MOVE LOGINC INTO IMAGE ENTITY
@@ -134,10 +131,10 @@ def image_push(parser, core, remote, local_image):
         print(f'ERROR: Image {local_image} does not exist locally')
         exit(1)
     print("Compressing and uploading you image, this may take a while...")
-    img_cls._conan_push(remote, local_image)
+    img_cls._conan_push(local_image)
     local_image_data = images_file[local_image]
     img = img_cls.create(**local_image_data['data'])
-    factory_class = create_class('KnownInstanceFactory', 'known_instance_factory', remote=True)
+    factory_class = create_class('KnownInstanceFactory')
     for factory in local_image_data['known_instance_factories']:
         print(factory)
         inst = factory_class.create(**factory)

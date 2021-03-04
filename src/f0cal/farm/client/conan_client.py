@@ -16,8 +16,6 @@ class ConanClient:
 
     @classmethod
     def set_conan_env(cls):
-        os.environ["CONAN_REQUEST_TIMEOUT"] = "600"
-        # TODO THE FOLLOWING SEEMS TO BE NECCARY WHEN USING A SLOW BACKEND, ONCE NETWORKING IF FIXED REMOVE
         if sys.prefix == sys.base_prefix:
             LOG.warning('NOT USING F0CAL INSIDE ENV, SETTING CONAN CACHE TO USER HOME DIR INSTEAD OF VENV')
             return

@@ -47,7 +47,7 @@ def resolve_remote_url(remote_name):
     print(f'Remote {remote_name} not found. Please configure the remote first using: f0cal remote add')
     exit(1)
 
-def create_class(class_name, noun, remote=False):
+def create_class(class_name, noun, remote=False, entities=entities):
     api_key = f0cal.core.CORE.config["api"].get("api_key")
     if remote:
         # TODO THIS A HACKY WORKAROUND FOR THE PLUGPARSE RUNNING ALL ARG SETTERS
@@ -72,8 +72,8 @@ def _resolve_reference_type(ref):
         return 'id'
 
     return 'name'
-def query(class_name, noun, ref, remote=None):
-    cls = create_class(class_name, noun, remote)
+def query(class_name, noun, ref, remote=None,  entities=entities):
+    cls = create_class(class_name, noun, remote, entities)
     ref_type = _resolve_reference_type(ref)
     if ref_type == 'reference':
         print('Referencing objects is only supported from ids currently. Check back soon for full namespace resolution')
@@ -85,7 +85,7 @@ def query(class_name, noun, ref, remote=None):
                 device_config = JsonFileParser(f0cal.core.CORE.config['api']['device_file'])
                 if ref not in device_config:
                     print(
-                        'Name {ref} not found. If you created in a different env try querying '
+                        f'Name {ref} not found. If you created in a different env try querying '
                         'all instances: \n f0cal farm instance query and then referencing it via id \n :<id> ')
                     exit(1)
                 return cls.from_id(device_config[ref]['id'])

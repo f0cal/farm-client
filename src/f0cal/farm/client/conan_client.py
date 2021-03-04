@@ -20,7 +20,7 @@ class ConanClient:
     PASSWORD = 'f0cal'
 
     @classmethod
-    def set_conan_cache(cls):
+    def set_conan_env(cls):
         if sys.prefix == sys.base_prefix:
             LOG.warning('NOT USING F0CAL INSIDE ENV, SETTING CONAN CACHE TO USER HOME DIR INSTEAD OF VENV')
             return
@@ -33,7 +33,7 @@ class ConanClient:
             self.conan.remote_add(remote_name=CONAN_REMOTE_NAME, url=conan_url)
         self._authenticate(self.USER, self.PASSWORD, CONAN_REMOTE_NAME)
     def __init__(self, f0cal_base_url):
-        self.set_conan_cache()
+        self.set_conan_env()
         self.conan = Conan()
         self._initialize_conan()
 

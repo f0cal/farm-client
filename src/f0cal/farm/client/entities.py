@@ -40,7 +40,7 @@ class Instance(Instance):
 
     def _format_ssh_args(self, connection_args, remote):
         user = self._get_user(remote)
-        ip, port = self._get_url()
+        ip, port = self._get_ip()
         if port:
             connection_args = ['-p', f'{port}'] + connection_args
         connection_args = ['ssh'] + [f'{user}@{ip}'] + connection_args
@@ -59,12 +59,14 @@ class Instance(Instance):
             print('Error: Could not get user for the image this instance is using')
             exit(1)
 
-    def _get_url(self):
+    def _get_ip(self):
         ip = self.ip
+        port = None
         if ip is None:
             print('This instance does not have an ip configured yet. Are you sure its ready?')
-        parts = urllib.parse.urlparse(ip)
-        return parts.hostname, parts.port
+        if ':' in ip:
+            ip, _, port = ip.rpartition(':')
+        return ip, port
 
     def save(self, *args, **kwargs):
         no_block = kwargs.pop('no_block')
@@ -83,7 +85,7 @@ class Instance(Instance):
         response = self.CLIENT._get_raw(url)
         with open(output_file, 'w') as f:
             f.write(response.text)
-        print(f'Succesfully wrote serial logs  to {output_file}')
+        print(f'Successfully wrote serial logs  to {output_file}')
         exit(0)
     @property
     def printable_json(self):

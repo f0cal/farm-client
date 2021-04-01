@@ -28,7 +28,6 @@ def api_key_required(wrapped, instance, args, kwargs):
 
 
 class DeviceFarmApi:
-
     def __init__(self, api_url, api_key=None):
         self.url = f'{api_url}/api'
         self.api_key = api_key
@@ -61,11 +60,6 @@ class DeviceFarmApi:
     def _check_response(self, response):
         if not response.ok:
             self._handle_error_response(response)
-    def _get_base_url(self, remote=None):
-        if remote is None:
-            return f'{self.url}/api'
-        if remote is not None:
-            return f'{self.url}'
 
     def _prep_data(self, data):
         for key, val in data.items():

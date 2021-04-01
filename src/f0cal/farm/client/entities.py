@@ -9,6 +9,7 @@ import urllib
 import os
 import logging
 
+
 LOG = logging.getLogger(__name__)
 
 
@@ -39,18 +40,19 @@ class Instance(Instance):
         os.execvp(ssh_bin, connection_args)
 
     def _format_ssh_args(self, connection_args, remote):
-        user = self._get_user(remote)
-        ip, port = self._get_url()
+        user = self._get_user()
+        ip, port = self._get_ip()
         if port:
             connection_args = ['-p', f'{port}'] + connection_args
         connection_args = ['ssh'] + [f'{user}@{ip}'] + connection_args
         return connection_args
 
-    def _get_user(self, remote):
+    def _get_user(self):
         try:
             image_id = self.image_id
-            api_key = f0cal.core.CORE.config["api"].get("api_key")
-            client = DeviceFarmApi(remote, api_key)
+            api_key = f0cal.core.CORE.config["api"]["api_key"]
+            api_url = f0cal.core.CORE.config["api"]["api_url"]
+            client = DeviceFarmApi(api_url, api_key)
             img_cls = type('Image', (Image,), {"CLIENT": client, "NOUN": 'image'})
             image = img_cls.from_id(image_id)
             return image.admin_user
@@ -59,18 +61,23 @@ class Instance(Instance):
             print('Error: Could not get user for the image this instance is using')
             exit(1)
 
-    def _get_url(self):
+    def _get_ip(self):
         ip = self.ip
+        port = None
         if ip is None:
             print('This instance does not have an ip configured yet. Are you sure its ready?')
-        parts = urllib.parse.urlparse(ip)
-        return parts.hostname, parts.port
+        if ':' in ip:
+            ip, _, port = ip.rpartition(':')
+        return ip, port
 
     def save(self, *args, **kwargs):
         no_block = kwargs.pop('no_block')
         # TODO THIS IS A BIT UGLY SAVE SHOULD ACTAULLY BE A MODE OF CREATION ON AN IMAGE NO VERB ON INSTANCWE
         image_data = self._do_verb('save', kwargs)
-        cls = type("Image", (Image,), {"CLIENT": self.CLIENT, "NOUN": 'image'})
+        client = DeviceFarmApi(
+            api_key=f0cal.core.CORE.config["api"].get("api_key"), api_url=f0cal.core.CORE.config["api"]["api_url"]
+        )
+        cls = type("Image", (Image,), {"CLIENT": client, "NOUN": 'image'})
         image = cls.from_id(image_data.id)
         if not no_block:
             # Ugly circular import
@@ -83,7 +90,7 @@ class Instance(Instance):
         response = self.CLIENT._get_raw(url)
         with open(output_file, 'w') as f:
             f.write(response.text)
-        print(f'Succesfully wrote serial logs  to {output_file}')
+        print(f'Successfully wrote serial logs  to {output_file}')
         exit(0)
     @property
     def printable_json(self):
@@ -95,14 +102,14 @@ class Image(Image):
     @classmethod
     def _conan_pull(cls, remote, image_name):
         conan_client = ConanClient()
-        conan_client.image_pull(image_name, remote)
+        conan_client.image_pull(image_name)
     @classmethod
-    def _conan_push(cls, remote, image_name):
+    def _conan_push(cls, image_name):
         conan_client = ConanClient()
-        conan_client.image_push(image_name, remote)
+        conan_client.image_push(image_name)
 
     def serialize(self):
-        # TODO MOVE JSONFILE PARSER TO AVOIND CIRCULAR IMPORT AND IMPORT UP TOP
+        # TODO (HACKY) MOVE JSONFILE PARSER TO AVOID CIRCULAR IMPORT AND IMPORT UP TOP
         from f0cal.farm.client.utils import JsonFileParser
         images_file = JsonFileParser(f0cal.core.CORE.config['api']['images_file'])
         if self.name in images_file:
@@ -114,16 +121,16 @@ class Image(Image):
             'known_instance_factories': self.known_instance_factories}
         images_file.write()
 
-    def pull(self, remote):
-        self._conan_pull(remote, self.name)
+    def pull(self):
+        self._conan_pull(self.name)
         self.serialize()
         return self
 
     @property
     def printable_json(self):
         _s = [x['name'] for x in self.supported_device_types]
-        return {'name': self.name, \
-                'supported_device_types': _s, \
+        return {'name': self.name,
+                'supported_device_types': _s,
                 }
 
 

@@ -40,14 +40,14 @@ class Instance(Instance):
         os.execvp(ssh_bin, connection_args)
 
     def _format_ssh_args(self, connection_args, remote):
-        user = self.admin_user
+        user = self.user
         ip, port = self._get_ip()
         if port:
             connection_args = ['-p', f'{port}'] + connection_args
         connection_args = ['ssh'] + [f'{user}@{ip}'] + connection_args
         return connection_args
     @property
-    def admin_user(self):
+    def user(self):
         try:
             image_id = self.image_id
             api_key = f0cal.core.CORE.config["api"]["api_key"]
@@ -94,7 +94,7 @@ class Instance(Instance):
         exit(0)
     @property
     def printable_json(self):
-        return {'status': self.status, 'id': self.id, 'public_ip': self.ip, 'admin_user': self.admin_user,
+        return {'status': self.status, 'id': self.id, 'public_ip': self.ip, 'user': self.user,
                 'queue_position': self.queue_position,
                 'created_at': self.created_at, 'ended_at': self.ended_at}
 

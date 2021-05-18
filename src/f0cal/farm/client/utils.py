@@ -95,6 +95,9 @@ def query(class_name, noun, ref, remote=None,  entities=entities):
             _id = ref.replace(':', '')
             inst = cls.from_id(_id)
         return inst
+    except entities.NoSuchItemException as e:
+        print(e.args[0])
+        exit(1)
     except (ConnectionError, ClientError, ServerError) as e:
         print(e.args[0])
         exit(1)
@@ -119,7 +122,7 @@ def parse_update_string(update_string):
             key, val = map(lambda x: x.strip(), pair.split("="))
             ret[key] = val
     except:
-        print("Error update tring. Please make sure it is formatted correctly")
+        print("Error parsing update string. Please make sure it is formatted correctly")
     return ret
 
 @wrapt.decorator

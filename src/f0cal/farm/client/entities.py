@@ -56,6 +56,9 @@ class Instance(Instance):
             img_cls = type('Image', (Image,), {"CLIENT": client, "NOUN": 'image'})
             image = img_cls.from_id(image_id)
             return image.admin_user
+        except NoSuchItemException as e:
+            print(e.args[0])
+            exit(1)
         except Exception as e:
             LOG.error(e)
             print('Error: Could not get user for the image this instance is using')

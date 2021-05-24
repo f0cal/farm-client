@@ -15,10 +15,11 @@ CONAN_REMOTE_NAME = 'f0cal_images'
 CONAN_PATH = '/conan'
 
 class ConanClient:
-    #TODO THIS SHOULD GET REPLACED WITH API KEY BASED AUTH
-    USER = 'f0cal'
-    PASSWORD = 'f0cal'
+    USER = 'f0cal_user'
 
+    @property
+    def password(self):
+        return f0cal.core.CORE.config["api"]["api_key"]
     @classmethod
     def set_conan_env(cls):
         if sys.prefix == sys.base_prefix:

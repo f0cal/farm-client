@@ -197,8 +197,10 @@ def printer(wrapped, instance, args, kwargs):
         exit(1)
     if json:
         Printer.print_json(out)
-    else:
+    elif out:
         Printer.print_table(out)
+    else:
+        print('Success')
     return out
 
 class QueueingBar(IncrementalBar):

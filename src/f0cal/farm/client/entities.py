@@ -151,3 +151,9 @@ class SshKey(SshKey):
     @property
     def printable_json(self):
         return {'name': self.name, 'id': self.id}
+
+
+class Cluster(Cluster):
+    def add_user(self, *args, **kwargs):
+        kwargs['cluster_id'] = self.id
+        self._do_verb('add_user', kwargs)

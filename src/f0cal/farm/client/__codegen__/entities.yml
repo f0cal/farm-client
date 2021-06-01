@@ -5,7 +5,7 @@ entities:
       - name: push
       - name: pull
   - name: cluster
-
+  - name: user
   - name: instance
     verbs:
       - name: start
@@ -14,5 +14,3 @@ entities:
       - name: save
   - name: ssh_key
   - name: known_instance_factory
-
-

@@ -137,7 +137,6 @@ entrypoints:
       - name: file
         required: true
 
-
   - noun: cluster
     verb: query
     args:
@@ -145,3 +144,15 @@ entrypoints:
         positional: true
         type: query_string
 
+  - noun: cluster
+    verb: add_user
+    instance: true
+    args:
+      - name: cluster
+        required: true
+        type:
+          noun: cluster
+      - name: target_user
+        required: true
+        type:
+          noun: user

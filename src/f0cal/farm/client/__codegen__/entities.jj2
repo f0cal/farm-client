@@ -61,10 +61,12 @@ class EntityBase:
         #  unique contraints on the name within that list
 
         all_items = cls.CLIENT.list(cls.NOUN)
+        name_fields = ['name', 'username', 'fully_qualified_name']
         # TODO should use pandas or something here
         for i in all_items:
-            if i.get('name') == name:
-                return cls._from_response(i)
+            for field_name in name_fields:
+                if i.get(field_name, None) == name:
+                    return cls._from_response(i)
         raise NoSuchItemException(f'There is no {cls.NOUN} named {name}')
 
     def refresh(self):

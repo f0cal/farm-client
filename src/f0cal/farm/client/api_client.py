@@ -1,9 +1,7 @@
-# TODO move this into in a sepereate package
-from encodings.punycode import selective_find
-
 import requests
 import logging
 import wrapt
+import json
 from f0cal.farm.client.__codegen__.entities import EntityBase
 
 LOG = logging.getLogger(__name__)
@@ -30,9 +28,8 @@ def api_key_required(wrapped, instance, args, kwargs):
 
 
 class DeviceFarmApi:
-
     def __init__(self, api_url, api_key=None):
-        self.url = api_url
+        self.url = f'{api_url}/api'
         self.api_key = api_key
 
     @staticmethod
@@ -46,8 +43,12 @@ class DeviceFarmApi:
             raise ClientError(err_str)
 
         elif response.status_code >= 400:
-            if 'errors' in response.json():
-                err_str = f"ERROR Bad request: \n{response.json()['errors'][0]['code']} "
+            try:
+                response_json = response.json()
+            except json.decoder.JSONDecodeError:
+                raise ClientError(f"ERROR Bad request")
+            if 'errors' in response_json:
+                err_str = f"ERROR Bad request: \n{response_json['errors'][0]['code']}"
             else:
                 err_str = f"ERROR Bad request: \n{response.json()} Please contact support@f0cal.com"
             raise ClientError(err_str)
@@ -62,16 +63,12 @@ class DeviceFarmApi:
 
     def _prep_data(self, data):
         for key, val in data.items():
-            if val is None:
-                del data[key]
             if isinstance(val, EntityBase):
                 data[key] = val.id
-
+        # There is an issue with FlaskResty/marshmallow and None values
         data = {k: v for k, v in data.items() if v is not None}
         return data
-
-    def _get(self, url, *args, **kwargs):
-
+    def _get_raw(self, url, *args, **kwargs):
         headers = kwargs.pop('headers', {})
         headers = self._add_auth(headers)
         kwargs['headers'] = headers
@@ -83,7 +80,10 @@ class DeviceFarmApi:
             raise ConnectionError(err_str)
 
         self._check_response(response)
+        return response
 
+    def _get(self, url, *args, **kwargs):
+        response = self._get_raw(url, *args, **kwargs)
         return response.json()['data']
 
     def _post(self, url, data, *args, **kwargs):
@@ -133,27 +133,27 @@ class DeviceFarmApi:
 
         return response.json()['data']
 
-    def create(self, noun, data):
+    def create(self, noun, data, remote=None):
         url = f'{self.url}/{noun}/'
         return self._post(url, data)
 
-    def update(self, noun, _id, data):
+    def update(self, noun, _id,  data, remote=None):
         url = f'{self.url}/{noun}/{_id}'
         return self._patch(url, data)
 
-    def delete(self, noun, _id):
+    def delete(self, noun, _id, remote=None):
         url = f'{self.url}/{noun}/{_id}'
         return self._delete(url)
 
-    def list(self, noun):
+    def list(self, noun, remote=None):
         url = f'{self.url}/{noun}/'
         return self._get(url)
 
-    def retrieve(self, noun, _id):
+    def retrieve(self, noun, _id, remote=None):
         url = f'{self.url}/{noun}/{_id}'
         return self._get(url)
 
-    def action(self, noun, _id, verb, data):
+    def action(self, noun, _id, verb, data, remote=None):
         url = f'{self.url}/{noun}/{_id}/{verb}/'
         return self._post(url, data)
 

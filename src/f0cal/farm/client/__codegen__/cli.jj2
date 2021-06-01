@@ -13,11 +13,15 @@
 {{ noun | replace("_", "-") }}
 {%- endmacro -%}
 
-{%- macro ARG_TYPE(type) -%}
+{%- macro ARG_TYPE(type, remote) -%}
 {%- if type is not defined -%}
 
 {%- elif type is mapping -%}
+  {% if remote %}
+  type=lambda name: query("{{ CLASS_NAME(type['noun']) }}", "{{ type['noun'] }}", name, remote=True),
+  {% else %}
   type=lambda name: query("{{ CLASS_NAME(type['noun']) }}", "{{ type['noun'] }}", name),
+  {% endif %}
 {%- elif type=='query_string' -%}
   type=lambda query_string: parse_query_string(query_string),
 {%- elif type=='update_string' -%}
@@ -28,37 +32,42 @@
 {%- endmacro -%}
 
 
-{%- macro ADD_ARGUMENT(name, type, kwargs={},  required=False, positional=False) -%}
+{%- macro ADD_ARGUMENT(name, type, kwargs={},  required=False, positional=False, remote=False) -%}
   {% if positional %}
 
-  parser.add_argument("{{ name }}",{{ ARG_TYPE(type) }} {%- if not required %} nargs='?',{% endif -%} {{ KWARGS(kwargs) }})
+  parser.add_argument("{{ name }}",{{ ARG_TYPE(type, remote) }} {%- if not required %} nargs='?',{% endif -%} {{ KWARGS(kwargs) }})
   {% else %}
-  parser.add_argument("--{{ name }}",{{ ARG_TYPE(type) }} required={{required }}, {{ KWARGS(kwargs) }})
+  parser.add_argument("--{{ name }}",{{ ARG_TYPE(type, remote) }} required={{required }}, {{ KWARGS(kwargs) }})
   {% endif %}
 {%- endmacro -%}
 
 {%- macro ARGSETTER_NAME(noun, verb) -%}
-_args_{{ noun }}_{{ verb }} 
+_args_{{ noun }}_{{ verb | replace('-', '_')}}
 {%- endmacro -%}
 
-{% macro ARGSETTER(noun, verb, accepts, returns) %}
+{% macro ARGSETTER(noun, verb, accepts, returns, remote) %}
 def {{ ARGSETTER_NAME(noun, verb) }}(parser):
-  {% if accepts | length == 0 %} 
+  {% if accepts | length == 0 %}
     pass 
-  {% endif %} 
-  {% for type_data in accepts %}  
+  {% endif %}
+  {% if remote %}
+  parser.add_argument( "--remote", "-r", required=True,)
+  {% endif %}
+
+  {% for type_data in accepts %}
+    {% set _ = type_data.update({'remote':remote}) %}
     {{ ADD_ARGUMENT(**type_data) }}
   {% endfor %} 
 {% endmacro %}
 
 {%- macro ENTRYPOINT_NAME(noun, verb) -%}
-_cli_{{ noun }}_{{ verb }}
+_cli_{{ noun }}_{{ verb | replace('-', '_') }}
 
 {%- endmacro -%}
 
-{% macro CALLABLE(noun, verb, instance=False, requires_api_key=True) %}
+{% macro CALLABLE(noun, verb, instance=False, requires_api_key=True, remote=False) %}
   {% set argsetter = ARGSETTER_NAME(noun, verb) %} 
-@f0cal.entrypoint(["farm", "{{ FORMAT_CLI_NOUN(noun) }}", "{{ verb }}"], args={{ argsetter }})
+@f0cal.core.entrypoint(["farm", "{{ FORMAT_CLI_NOUN(noun) }}", "{{ verb }}"], args={{ argsetter }})
 @printer
 {% if requires_api_key %}
 @api_key_required
@@ -66,17 +75,25 @@ _cli_{{ noun }}_{{ verb }}
 def {{ ENTRYPOINT_NAME(noun, verb) }}(parser, core, *args, **dargs):
   client = DeviceFarmApi(api_key=core.config['api'].get('api_key'), api_url=core.config['api']['api_url'])
   {% if instance %}
+  {% if remote %}
+  {% endif %}
   inst = dargs.pop("{{ noun }}")
-  return inst.{{ verb }}(*args, **dargs)
+  return inst.{{ verb | replace('-', '_')}}(*args, **dargs)
+  {% else %}
+  {% if remote %}
+  remote = dargs.get("remote")
+  cls = create_class("{{ CLASS_NAME(noun) }}", "{{ noun }}", True)
   {% else %}
   cls = create_class("{{ CLASS_NAME(noun) }}", "{{ noun }}")
-  return cls.{{ verb }}(**dargs)
+  {% endif %}
+
+  return cls.{{ verb | replace('-', '_')}}(**dargs)
   {% endif %}
 {% endmacro %}
 
-{% macro ENTRYPOINT(noun, verb, args, instance, requires_api_key=True) %}
-  {{ ARGSETTER(noun, verb, args) }}
-  {{ CALLABLE(noun, verb, instance, requires_api_key) }}
+{% macro ENTRYPOINT(noun, verb, args, instance, requires_api_key=True, remote=False) %}
+  {{ ARGSETTER(noun, verb, args, remote=remote) }}
+  {{ CALLABLE(noun, verb, instance, requires_api_key, remote) }}
 {% endmacro %}
 
 {% macro TEMPLATE(classes, entrypoints) %}
@@ -92,7 +109,7 @@ def {{ ENTRYPOINT_NAME(noun, verb) }}(parser, core, *args, **dargs):
 #GENERATED CODE, DO NOT MODIFY
 ###########################################################
 
-import f0cal
+import f0cal.core
 import wrapt
 
 from f0cal.farm.client import entities

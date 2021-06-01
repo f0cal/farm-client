@@ -1,6 +1,7 @@
 entrypoints:
   - noun: device_type
     verb: retrieve
+    remote: True
     instance: true
     args:
       - name: device_type
@@ -11,11 +12,11 @@ entrypoints:
 
   - noun: device_type
     verb: query
+    remote: True
     args:
       - name: query_string
         positional: true
         type: query_string
-
   - noun: image
     verb: query
     args:
@@ -33,9 +34,20 @@ entrypoints:
         required: true
         type:
           noun: image
+  - noun: image
+    verb: pull
+    instance: true
+    requires_api_key: true
+    args:
+      - name: image
+        positional: true
+        required: true
+        type:
+          noun: image
 
   - noun: instance
     verb: retrieve
+    remote: True
     instance: true
     args:
       - name: instance
@@ -45,6 +57,7 @@ entrypoints:
           noun: instance
   - noun: instance
     verb: update
+    remote: True
     instance: true
     args:
       - name: instance
@@ -58,33 +71,16 @@ entrypoints:
         type: update_string
   - noun: instance
     verb: query
+    remote: True
     args:
       - name: query_string
         positional: true
         type: query_string
 
-  - noun: instance
-    verb: start
-    instance: true
-    args:
-      - name: instance
-        positional: true
-
-        type:
-          noun: instance
-
-  - noun: instance
-    verb: stop
-    instance: true
-    args:
-      - name: instance
-        positional: true
-        required: true
-        type:
-          noun: instance
 
   - noun: instance
     verb: destroy
+    remote: True
     instance: true
     args:
       - name: instance
@@ -92,23 +88,60 @@ entrypoints:
         required: true
         type:
           noun: instance
+  - noun: instance
+    verb: save
+    remote: True
+    instance: true
+    args:
+      - name: instance
+        positional: true
+        required: true
+        type:
+          noun: instance
+      - name: image-name
+        positional: false
+        required: true
+        type: 'lambda name: verify_conan_name(name)'
+      - name: version
+        positional: false
+        required: true
+        type: 'lambda name: verify_conan_name(name)'
 
-#  - noun: instance
-#    verb: connect
-#    instance: true
-#    args:
-#      - name: instance
-#        positional: true
-#        required: true
-#      - name: connection_type
-#        positional: true
-#        type: str
+      - name: no-block
+        kwargs:
+          action: "'store_true'"
 
+  - noun: instance
+    verb: get-serial-log
+    remote: True
+    instance: true
+    args:
+      - name: instance
+        positional: true
+        required: true
+        type:
+          noun: instance
+      - name: output-file
+        required: true
   - noun: ssh_key
     verb:  query
     args:
       - name: query_string
         positional: true
         type: query_string
+  - noun: ssh_key
+    verb:  create
+    args:
+      - name: name
+        positional: true
+      - name: file
+        required: true
 
+
+  - noun: cluster
+    verb: query
+    args:
+      - name: query_string
+        positional: true
+        type: query_string
 

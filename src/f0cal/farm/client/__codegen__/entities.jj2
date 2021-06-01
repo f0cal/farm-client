@@ -81,11 +81,19 @@ class EntityBase:
         return {}
 
     def _do_verb(self, verb, data):
+        # TODO THIS SHOULD GET REMOVED ELSEWHERE PERHAPS
+        if 'remote' in data:
+           data.pop('remote')
         response = self.CLIENT.action(self.NOUN, self.id, verb, data)
         return self._from_response(response)
 
-    def retrieve(self):
+    def retrieve(self, *args, **kwargs):
         return self
+    @property
+    def printable_json(self):
+        # SHOULD RETURN A DICTIONARY WITH THE KEYS TO BE PRINT FOR USER
+        # SHOULD BE OVERRIDDEN IN SUBCLASSES DEFUALTS TO PRINTING MOST ATTRIBUTES
+        return {k: v for k, v in self.__dict__.items() if not k.startswith("_")}
 
 
 {{ TEMPLATE(**vars()) }}

@@ -1,2 +1,2 @@
--e git+https://github.com/f0cal/plugnparse@dev#egg=plugnparse
--e git+https://github.com/f0cal/core2@dev#egg=f0cal.core
+-e git+https://github.com/f0cal/plugnparse#egg=plugnparse
+-e git+https://github.com/f0cal/core2#egg=f0cal.core

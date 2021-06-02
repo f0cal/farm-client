@@ -176,6 +176,8 @@ class Printer:
 
     @classmethod
     def print_table(cls, unk):
+        if unk is None:
+            return
         if isinstance(unk, Iterable) and len(unk) == 0:
             print("EMPTY")
             return
@@ -197,10 +199,8 @@ def printer(wrapped, instance, args, kwargs):
         exit(1)
     if json:
         Printer.print_json(out)
-    elif out:
-        Printer.print_table(out)
     else:
-        print('Success')
+        Printer.print_table(out)
     return out
 
 class QueueingBar(IncrementalBar):

@@ -13,7 +13,7 @@ def config_file():
     device_file = ${f0cal:prefix}/etc/f0cal/devices.json
     remotes_file = ${f0cal:prefix}/etc/f0cal/remotes.json
     images_file = ${f0cal:prefix}/etc/f0cal/images.json
-    
+
     '''
 
 def configure_args(parser):
@@ -32,6 +32,39 @@ def configure(parser, core,  update_args):
 
 
     core.config.write_file(core.config_path)
+
+
+def _args_user_create(parser):
+
+    parser.add_argument(
+        "--username",
+        type=str,
+        required=True,
+    )
+
+    parser.add_argument(
+        "--email",
+        type=str,
+        required=True,
+    )
+
+    parser.add_argument(
+        "--beta-invite-code",
+        type=str,
+        required=True,
+    )
+
+
+@f0cal.core.entrypoint(["farm", "user", "create"], args=_args_user_create)
+@printer
+@api_key_required
+def _cli_user_create(parser, core, *args, **dargs):
+    cls = create_class("User", "user")
+    user = cls.create(**dargs)
+    configure(parser, core, {'api_key': user.key})
+    print(f"User created and f0cal farm client configured to operate as user {user.username}")
+    return user
+
 
 def _args_instance_create(parser):
     parser.add_argument("name", )
@@ -138,4 +171,3 @@ def image_push(parser, core, local_image):
     for factory in local_image_data['known_instance_factories']:
         print(factory)
         inst = factory_class.create(**factory)
-

@@ -47,7 +47,7 @@ def resolve_remote_url(remote_name):
     print(f'Remote {remote_name} not found. Please configure the remote first using: f0cal remote add')
     exit(1)
 
-def create_class(class_name, noun, remote=False, entities=entities):
+def create_class(class_name, noun, remote=False, entities_module=entities):
     api_key = f0cal.core.CORE.config["api"].get("api_key")
     if remote:
         # TODO THIS A HACKY WORKAROUND FOR THE PLUGPARSE RUNNING ALL ARG SETTERS
@@ -60,7 +60,7 @@ def create_class(class_name, noun, remote=False, entities=entities):
         api_url = f0cal.core.CORE.config["api"]["api_url"]
     client = DeviceFarmApi(api_url, api_key)
     cls = type(
-        class_name, (getattr(entities, class_name),), {"CLIENT": client, "NOUN": noun}
+        class_name, (getattr(entities_module, class_name),), {"CLIENT": client, "NOUN": noun}
     )
     return cls
 
@@ -72,8 +72,8 @@ def _resolve_reference_type(ref):
         return 'id'
 
     return 'name'
-def query(class_name, noun, ref, remote=None,  entities=entities):
-    cls = create_class(class_name, noun, remote, entities)
+def query(class_name, noun, ref, remote=None,  entities_module=entities):
+    cls = create_class(class_name, noun, remote, entities_module)
     ref_type = _resolve_reference_type(ref)
     if ref_type == 'reference':
         print('Referencing objects is only supported from ids currently. Check back soon for full namespace resolution')

@@ -4,6 +4,7 @@ entities:
     verbs:
       - name: push
       - name: pull
+  - name: domain
   - name: cluster
   - name: user
   - name: instance

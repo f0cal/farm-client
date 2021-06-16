@@ -156,6 +156,8 @@ entrypoints:
           noun: domain
       - name: owner_user
         required: true
+        type:
+          noun: user
       - name: dlan_ip_cidr
         required: true
 

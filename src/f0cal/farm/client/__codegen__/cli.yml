@@ -17,6 +17,7 @@ entrypoints:
       - name: query_string
         positional: true
         type: query_string
+
   - noun: image
     verb: query
     args:
@@ -34,6 +35,7 @@ entrypoints:
         required: true
         type:
           noun: image
+
   - noun: image
     verb: pull
     instance: true
@@ -55,6 +57,7 @@ entrypoints:
         required: true
         type:
           noun: instance
+
   - noun: instance
     verb: update
     remote: True
@@ -69,6 +72,7 @@ entrypoints:
         positional: true
         required: true
         type: update_string
+
   - noun: instance
     verb: query
     remote: True
@@ -88,6 +92,7 @@ entrypoints:
         required: true
         type:
           noun: instance
+
   - noun: instance
     verb: save
     remote: True
@@ -123,18 +128,33 @@ entrypoints:
           noun: instance
       - name: output-file
         required: true
+
   - noun: ssh_key
-    verb:  query
+    verb: query
     args:
       - name: query_string
         positional: true
         type: query_string
+
   - noun: ssh_key
-    verb:  create
+    verb: create
     args:
       - name: name
         positional: true
       - name: file
+        required: true
+
+  - noun: cluster
+    verb: create
+    args:
+      - name: name
+        positional: true
+        required: true
+      - name: domain
+        required: true
+      - name: owner_user
+        required: true
+      - name: dlan_ip_cidr
         required: true
 
   - noun: cluster

@@ -155,5 +155,5 @@ class SshKey(SshKey):
 
 class Cluster(Cluster):
     def add_user(self, *args, **kwargs):
-        kwargs['cluster_id'] = self.id
+        kwargs['cluster'] = self.id
         self._do_verb('add_user', kwargs)

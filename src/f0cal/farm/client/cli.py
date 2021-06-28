@@ -1,3 +1,4 @@
+import os
 import f0cal.core
 import argparse
 import sys
@@ -32,6 +33,19 @@ def configure(parser, core,  update_args):
 
 
     core.config.write_file(core.config_path)
+
+
+@f0cal.core.entrypoint(['farm', 'config', 'from-env'])
+def configure_from_env(parser, core):
+    search_vars = ['api_key', 'api_url']
+    update_args = {}
+    for search_var in search_vars:
+        env_var_name = 'F0CAL_' + search_var.upper()
+        env_var_val = os.getenv(env_var_name, None)
+        if env_var_val:
+            update_args[search_var] = env_var_val
+
+    configure(parser, core, update_args)
 
 
 def _args_user_create(parser):

@@ -5,7 +5,6 @@ import sys
 
 import f0cal.core
 from f0cal.farm.client.__codegen__.cli import parse_update_string, printer, api_key_required
-from f0cal.farm.client.api_client import ClientError
 from  f0cal.farm.client.conan_client import ConanClient
 from f0cal.farm.client.utils import query, create_class, JsonFileParser, InstanceStatusPrinter, resolve_remote_url, Printer
 
@@ -38,18 +37,9 @@ def configure(parser, core,  update_args):
     core.config.write_file(core.config_path)
 
 
-def configure_set_args(parser):
-    parser.add_argument('set_args')
-    parser.add_argument('--from-env', action='store_true')
-
-
-@f0cal.core.entrypoint(['farm', 'config', 'set'])
-def configure_from_env(parser, core, configure_set_args=configure_set_args):
-    search_vars = {'api_key', 'api_url'} if configure_set_args.set_args == '*' else configure_set_args.set_args
-
-    if not configure_set_args.from_env:
-        raise ClientError("Configuration set only supports --from-env. Use update instead?")
-
+@f0cal.core.entrypoint(['farm', 'config', 'from-env'])
+def configure_from_env(parser, core):
+    search_vars = {'api_key', 'api_url'}
     update_args = {}
     for search_var in search_vars:
         env_var_name = 'F0CAL_' + search_var.upper()

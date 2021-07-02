@@ -22,7 +22,7 @@ def configure_args(parser):
 
 
 @f0cal.core.entrypoint(['farm', 'config', 'update'], args=configure_args)
-def configure(parser, core,  update_args):
+def configure(parser, core, update_args, *args, **kwargs):
     if 'api_key' in update_args:
         core.config['api']['api_key'] = update_args['api_key']
         print("Updated API key")
@@ -124,7 +124,7 @@ def remote_add_args(parser):
     parser.add_argument("--url",  help="The url of that remote cluster")
 
 @f0cal.core.entrypoint(["farm", "remote", "add"], args=remote_add_args)
-def add_remote(parser, core, name, url):
+def add_remote(parser, core, name, url, *args, **kwargs):
     if url is None:
         Cluster = create_class("Cluster", "cluster")
         clusters = Cluster.query()
@@ -145,7 +145,7 @@ def add_remote(parser, core, name, url):
     remotes_file.write()
 
 @f0cal.core.entrypoint(["farm", "remote", "list"])
-def remote_list(parser, core):
+def remote_list(parser, core, *args, **kwargs):
     remotes_file = JsonFileParser(core.config['api']['remotes_file'])
     data = [dict(alias=k, url=v) for k, v in remotes_file.data.items()]
     Printer.print_table(data)
@@ -154,7 +154,7 @@ def image_push_args(parser):
     parser.add_argument("local_image", help='Name of locally cached image')
 
 @f0cal.core.entrypoint(["farm", "image", "push"], args=image_push_args)
-def image_push(parser, core, local_image):
+def image_push(parser, core, local_image, *args, **kwargs):
 
     # TODO GENREALLY NEED SOME ERROR HANDELING HERE.
     # TODO MOVE LOGINC INTO IMAGE ENTITY

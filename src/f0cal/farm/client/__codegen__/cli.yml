@@ -88,6 +88,7 @@ entrypoints:
         required: true
         type:
           noun: instance
+
   - noun: instance
     verb: save
     remote: True
@@ -143,16 +144,3 @@ entrypoints:
       - name: query_string
         positional: true
         type: query_string
-
-  - noun: cluster
-    verb: add_user
-    instance: true
-    args:
-      - name: cluster
-        required: true
-        type:
-          noun: cluster
-      - name: target_user
-        required: true
-        type:
-          noun: user

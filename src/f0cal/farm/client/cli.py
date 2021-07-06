@@ -38,7 +38,7 @@ def configure(parser, core, update_args, *args, **kwargs):
 
 
 @f0cal.core.entrypoint(['farm', 'config', 'from-env'])
-def configure_from_env(parser, core):
+def configure_from_env(parser, core, *args, **kwargs):
     search_vars = {'api_key', 'api_url'}
     update_args = {}
     for search_var in search_vars:

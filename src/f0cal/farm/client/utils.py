@@ -185,7 +185,7 @@ class Printer:
     @classmethod
     def print_json(cls, unk):
         blob = cls.unk_to_blob(unk)
-        print(blob)
+        print(json.dumps(blob))
 
 @wrapt.decorator
 def printer(wrapped, instance, args, kwargs):

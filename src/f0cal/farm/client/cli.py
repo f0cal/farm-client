@@ -76,7 +76,6 @@ def _args_user_create(parser):
 
 @f0cal.core.entrypoint(["farm", "user", "create"], args=_args_user_create)
 @printer
-@api_key_required
 def _cli_user_create(parser, core, *args, **dargs):
     cls = create_class("User", "user")
     user = cls.create(**dargs)

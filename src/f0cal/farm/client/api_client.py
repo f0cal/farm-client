@@ -1,10 +1,9 @@
 import requests
-import logging
 import wrapt
 import json
-from f0cal.farm.client.__codegen__.entities import EntityBase
 
-LOG = logging.getLogger(__name__)
+from f0cal.core.helpers import create_client_log
+from f0cal.farm.client.__codegen__.entities import EntityBase
 
 
 class ServerError(Exception):
@@ -28,9 +27,10 @@ def api_key_required(wrapped, instance, args, kwargs):
 
 
 class DeviceFarmApi:
-    def __init__(self, api_url, api_key=None):
+    def __init__(self, api_url, api_key=None, verbose=False):
         self.url = f'{api_url}/api'
         self.api_key = api_key
+        self.LOG = create_client_log(__name__, verbose=verbose)
 
     @staticmethod
     def _handle_error_response(response):
@@ -54,24 +54,38 @@ class DeviceFarmApi:
             raise ClientError(err_str)
 
         else:
-            print("Unknown Error from F0cal")
+            self.LOG.error("Unknown Error from F0cal")
             response.raise_for_status()
 
     def _check_response(self, response):
+        response_json = response.json()
+        debug_response = response_json.pop('debug', '')
+
+        self.LOG.info(f'Response JSON:\n{json.dumps(response_json, indent=4, sort_keys=True)}\n{debug_response}')
+
         if not response.ok:
             self._handle_error_response(response)
 
     def _prep_data(self, data):
+        data.pop('verbose', None)
+
         for key, val in data.items():
             if isinstance(val, EntityBase):
                 data[key] = val.id
         # There is an issue with FlaskResty/marshmallow and None values
         data = {k: v for k, v in data.items() if v is not None}
         return data
+
     def _get_raw(self, url, *args, **kwargs):
         headers = kwargs.pop('headers', {})
         headers = self._add_auth(headers)
         kwargs['headers'] = headers
+
+        self.LOG.info('Get (raw) request:')
+        self.LOG.info(f'url: {url}')
+        self.LOG.info(f'*args: {args}')
+        self.LOG.info(f'**kwargs: {kwargs}')
+
         try:
             response = requests.get(url, *args, **kwargs)
         except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout) as e:
@@ -91,6 +105,13 @@ class DeviceFarmApi:
         headers = self._add_auth(headers)
         kwargs['headers'] = headers
         data = self._prep_data(data)
+
+        self.LOG.info('Post request:')
+        self.LOG.info(f'url: {url}')
+        self.LOG.info(f'data: {data}')
+        self.LOG.info(f'*args: {args}')
+        self.LOG.info(f'**kwargs: {kwargs}')
+
         try:
             response = requests.post(url, json={'data': data}, *args, **kwargs)
         except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout) as e:
@@ -110,7 +131,7 @@ class DeviceFarmApi:
         try:
             response = requests.patch(url, json={'data': data}, *args, **kwargs)
         except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout) as e:
-            LOG.error(f'ERROR: {e.args[0]}')
+            self.LOG.error(f'ERROR: {e.args[0]}')
             err_str = f"There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com" \
                       f"\nMore info:\n{e.args[0]}"
             raise ConnectionError(err_str)

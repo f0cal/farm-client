@@ -47,7 +47,7 @@ def resolve_remote_url(remote_name):
     print(f'Remote {remote_name} not found. Please configure the remote first using: f0cal remote add')
     exit(1)
 
-def create_class(class_name, noun, remote=False, entities_module=entities):
+def create_class(class_name, noun, remote=False, entities_module=entities, verbose=False):
     api_key = f0cal.core.CORE.config["api"].get("api_key")
     if remote:
         # TODO THIS A HACKY WORKAROUND FOR THE PLUGPARSE RUNNING ALL ARG SETTERS
@@ -58,7 +58,7 @@ def create_class(class_name, noun, remote=False, entities_module=entities):
         api_url = ns.remote
     else:
         api_url = f0cal.core.CORE.config["api"]["api_url"]
-    client = DeviceFarmApi(api_url, api_key)
+    client = DeviceFarmApi(api_url, api_key, verbose=verbose)
     cls = type(
         class_name, (getattr(entities_module, class_name),), {"CLIENT": client, "NOUN": noun}
     )

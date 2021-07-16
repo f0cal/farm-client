@@ -48,7 +48,7 @@ _args_{{ noun }}_{{ verb | replace('-', '_')}}
 {% macro ARGSETTER(noun, verb, accepts, returns, remote) %}
 def {{ ARGSETTER_NAME(noun, verb) }}(parser):
   {% if accepts | length == 0 %}
-    pass 
+    pass
   {% endif %}
   {% if remote %}
   parser.add_argument( "--remote", "-r", required=True,)
@@ -57,7 +57,7 @@ def {{ ARGSETTER_NAME(noun, verb) }}(parser):
   {% for type_data in accepts %}
     {% set _ = type_data.update({'remote':remote}) %}
     {{ ADD_ARGUMENT(**type_data) }}
-  {% endfor %} 
+  {% endfor %}
 {% endmacro %}
 
 {%- macro ENTRYPOINT_NAME(noun, verb) -%}
@@ -66,14 +66,13 @@ _cli_{{ noun }}_{{ verb | replace('-', '_') }}
 {%- endmacro -%}
 
 {% macro CALLABLE(noun, verb, instance=False, requires_api_key=True, remote=False) %}
-  {% set argsetter = ARGSETTER_NAME(noun, verb) %} 
+  {% set argsetter = ARGSETTER_NAME(noun, verb) %}
 @f0cal.core.entrypoint(["farm", "{{ FORMAT_CLI_NOUN(noun) }}", "{{ verb }}"], args={{ argsetter }})
 @printer
 {% if requires_api_key %}
 @api_key_required
 {% endif %}
 def {{ ENTRYPOINT_NAME(noun, verb) }}(parser, core, *args, **dargs):
-  client = DeviceFarmApi(api_key=core.config['api'].get('api_key'), api_url=core.config['api']['api_url'])
   {% if instance %}
   {% if remote %}
   {% endif %}
@@ -82,9 +81,9 @@ def {{ ENTRYPOINT_NAME(noun, verb) }}(parser, core, *args, **dargs):
   {% else %}
   {% if remote %}
   remote = dargs.get("remote")
-  cls = create_class("{{ CLASS_NAME(noun) }}", "{{ noun }}", True)
+  cls = create_class("{{ CLASS_NAME(noun) }}", "{{ noun }}", True, verbose=dargs.get("verbose", False))
   {% else %}
-  cls = create_class("{{ CLASS_NAME(noun) }}", "{{ noun }}")
+  cls = create_class("{{ CLASS_NAME(noun) }}", "{{ noun }}", verbose=dargs.get("verbose", False))
   {% endif %}
 
   return cls.{{ verb | replace('-', '_')}}(**dargs)

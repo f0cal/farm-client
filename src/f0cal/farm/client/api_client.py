@@ -34,6 +34,7 @@ class DeviceFarmApi:
 
     @staticmethod
     def _handle_error_response(response):
+        print(response.text)
         if response.status_code >= 500:
             err_str = f"There was an Server ERROR in the F0cal Device Farm API at {response.request.path_url}. Please contact Please contact support@f0cal.com"
             raise ServerError(err_str)
@@ -92,6 +93,8 @@ class DeviceFarmApi:
         kwargs['headers'] = headers
         data = self._prep_data(data)
         try:
+            print(url)
+            print(data)
             response = requests.post(url, json={'data': data}, *args, **kwargs)
         except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout) as e:
             err_str = f"There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com" \
@@ -147,6 +150,7 @@ class DeviceFarmApi:
 
     def list(self, noun, remote=None):
         url = f'{self.url}/{noun}/'
+        print(url)
         return self._get(url)
 
     def retrieve(self, noun, _id, remote=None):

@@ -148,7 +148,6 @@ class DeviceFarmApi:
 
     def list(self, noun, remote=None):
         url = f'{self.url}/{noun}/'
-        print(url)
         return self._get(url)
 
     def retrieve(self, noun, _id, remote=None):

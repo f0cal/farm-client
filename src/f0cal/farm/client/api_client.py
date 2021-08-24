@@ -93,8 +93,6 @@ class DeviceFarmApi:
         kwargs['headers'] = headers
         data = self._prep_data(data)
         try:
-            print(url)
-            print(data)
             response = requests.post(url, json={'data': data}, *args, **kwargs)
         except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout) as e:
             err_str = f"There was an error connecting to the F0cal Device Farm API. Please contact support@f0cal.com" \

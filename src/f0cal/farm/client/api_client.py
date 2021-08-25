@@ -34,6 +34,7 @@ class DeviceFarmApi:
 
     @staticmethod
     def _handle_error_response(response):
+        print(response.text)
         if response.status_code >= 500:
             err_str = f"There was an Server ERROR in the F0cal Device Farm API at {response.request.path_url}. Please contact Please contact support@f0cal.com"
             raise ServerError(err_str)

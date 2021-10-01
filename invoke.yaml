@@ -1,0 +1,9 @@
+python.docker-build:
+  image:
+    start: python:3.7-slim
+    end: f0cal/f0cal.farm.client:build
+
+docker-compose:
+  up:
+    composefile: docker/docker-compose.yaml
+    prefix: client-testing

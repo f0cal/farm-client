@@ -1,9 +1,6 @@
 [build-system]
-requires = [
-    "setuptools >= 35.0.2",
-    "setuptools_scm >= 2.0.0, <3",
-    "black",
-    "jinja2",
-    "pyyaml"
-]
+requires = ["setuptools>=46.1.0", "setuptools_scm[toml]>=5", "black", "jinja2", "pyyaml", "wheel"]
 build-backend = "setuptools.build_meta"
+[tool]
+[tool.setuptools_scm]
+version_scheme = "no-guess-dev"

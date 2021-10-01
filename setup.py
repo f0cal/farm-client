@@ -1,32 +1,23 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
-    Setup file for f0cal.farm.client.
+    Setup file for f0cal.services.central_api.
     Use setup.cfg to configure your project.
 
-    This file was generated with PyScaffold 3.1.
+    This file was generated with PyScaffold 4.0.2.
     PyScaffold helps you to put up the scaffold of your new Python project.
     Learn more under: https://pyscaffold.org/
 """
-import sys
+import glob
+import os
+import pathlib
 
-from pkg_resources import require, VersionConflict
+import black
+import jinja2
+import yaml
 from setuptools import setup
 from setuptools.command.build_py import build_py as _build_py
 from setuptools.command.develop import develop as _develop
+from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
-import glob
-import os.path
-import black
-import yaml
-import jinja2
-import pathlib
-
-try:
-    require('setuptools>=38.3')
-except VersionConflict:
-    print("Error: version of setuptools is too old (<38.3)!")
-    sys.exit(1)
 
 class CodeGen:
     TEMPLATE_PATTERN = "src/**/__codegen__/*.jj2"
@@ -60,15 +51,17 @@ class CodeGen:
 
     def _format_code(self, py_filename):
         _dargs = dict(fast=False, mode=black.FileMode(), write_back=black.WriteBack.YES)
-        assert black.format_file_in_place(pathlib.Path(py_filename), **_dargs), py_filename
+        assert black.format_file_in_place(
+            pathlib.Path(py_filename), **_dargs
+        ), py_filename
 
     def _write_init(self, py_filename):
-        init_path = os.path.join(os.path.dirname(py_filename), '__init__.py')
+        init_path = os.path.join(os.path.dirname(py_filename), "__init__.py")
         if not os.path.exists(init_path):
-            open(init_path, 'w').close()
+            open(init_path, "w").close()
 
     def _run_one_codegen(self, py_filename, template_filename, data_blob_filename):
-        with open(py_filename, 'w') as py_file:
+        with open(py_filename, "w") as py_file:
             py_str = self._render(template_filename, data_blob_filename)
             py_file.write(py_str)
 
@@ -87,10 +80,42 @@ class CodeGen:
         self._run_codegen()
         super().run()
 
+
+_cmdclass = dict(
+    build_py=type(
+        "BuildPyCodeGen",
+        (
+            CodeGen,
+            _build_py,
+        ),
+        {},
+    ),
+    develop=type(
+        "DevelopCodeGen",
+        (
+            CodeGen,
+            _develop,
+        ),
+        {},
+    ),
+    bdist_wheel=type(
+        "BDistCodeGen",
+        (
+            CodeGen,
+            _bdist_wheel,
+        ),
+        {},
+    ),
+)
+
 if __name__ == "__main__":
-    _cmdclass = dict(build_py=type('BuildPyCodeGen', (CodeGen, _build_py, ), {}),
-                     develop=type('DevelopCodeGen', (CodeGen, _develop, ), {}),
-                     )
-    setup(use_pyscaffold=True,
-          cmdclass=_cmdclass,
-          )
+    try:
+        setup(use_scm_version={"version_scheme": "no-guess-dev"}, cmdclass=_cmdclass)
+    except:  # noqa
+        print(
+            "\n\nAn error occurred while building the project, "
+            "please ensure you have the most updated version of setuptools, "
+            "setuptools_scm and wheel with:\n"
+            "   pip install -U setuptools setuptools_scm wheel\n\n"
+        )
+        raise

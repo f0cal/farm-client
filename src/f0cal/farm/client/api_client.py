@@ -139,11 +139,11 @@ class DeviceFarmApi:
         return self._post(url, data)
 
     def update(self, noun, _id,  data, remote=None):
-        url = f'{self.url}/{noun}/{_id}'
+        url = f'{self.url}/{noun}/{_id}/'
         return self._patch(url, data)
 
     def delete(self, noun, _id, remote=None):
-        url = f'{self.url}/{noun}/{_id}'
+        url = f'{self.url}/{noun}/{_id}/'
         return self._delete(url)
 
     def list(self, noun, remote=None):

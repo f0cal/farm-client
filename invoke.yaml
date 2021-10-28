@@ -7,3 +7,23 @@ docker-compose:
   up:
     composefile: docker/docker-compose.yaml
     prefix: client-testing
+
+make-like:
+
+  define:
+
+    client/sanity.check:
+      inv: sanity.check
+
+    client/python.push:
+      inv: python.docker-push
+      depends:
+        - client/sanity.check
+
+    client/itest:
+      inv: docker-compose.test --refresh true
+      depends:
+        # - venusian/python.push
+        - plugnparse/python.push
+        - core2/python.push
+        - client/python.push
